@@ -1,0 +1,180 @@
+@import "tailwindcss";
+
+:root {
+  --background: #09090b;
+  --surface: #111114;
+  --surface-elevated: #17171b;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --foreground: #ffffff;
+  --muted: #8b8b97;
+  --muted-dim: #6b6b74;
+  --accent-from: #fd8a48;
+  --accent-via: #ea0707;
+  --accent-to: #f67606;
+  --accent-solid: #fb7d3f;
+  --positive: #4ade80;
+  --negative: #fb7185;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-strong: var(--border-strong);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-dim: var(--muted-dim);
+  --color-accent-from: var(--accent-from);
+  --color-accent-via: var(--accent-via);
+  --color-accent-to: var(--accent-to);
+  --color-accent-solid: var(--accent-solid);
+  --color-positive: var(--positive);
+  --color-negative: var(--negative);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+* {
+  border-color: var(--border-subtle);
+}
+
+::selection {
+  background: var(--accent-solid);
+  color: white;
+}
+
+/* Slim, unobtrusive scrollbars used for horizontally scrolling chip rows */
+.scrollbar-thin::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 9999px;
+}
+
+/**
+ * Reusable animated gradient-border focus treatment, shared by the chat
+ * composer and every text/number/search input + textarea in the app.
+ *
+ * Usage: add `.focus-gradient-ring` (position: relative required — already
+ * satisfied by `relative` on the wrapping element) to any container that
+ * wraps a native input/textarea, or directly to the field itself. A 1.5px
+ * gradient ring fades in over 200ms on `:focus-within` (or `:focus` when
+ * applied straight to the field), drawn as a `::before` overlay via
+ * mask-composite so it never shifts layout or touches the background.
+ */
+.focus-gradient-ring {
+  position: relative;
+  isolation: isolate;
+}
+.focus-gradient-ring::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: linear-gradient(135deg, var(--accent-from) 0%, var(--accent-via) 55%, var(--accent-to) 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 200ms ease;
+  pointer-events: none;
+}
+.focus-gradient-ring:focus-within::before,
+.focus-gradient-ring:focus::before {
+  opacity: 1;
+}
+
+/**
+ * Living gradient border + soft breathing glow, shared by the AI Insight
+ * card and the "Ask AI" button — anywhere with a double-background
+ * gradient border (see Card's `highlighted` variant and Button's `outline`
+ * variant) that should feel quietly "alive" rather than static.
+ * Two independent animations layered on top of that existing trick:
+ *  - `ai-border-shimmer` slowly drifts the border gradient's position, so
+ *    the orange/red hues gently cross-fade along the ring instead of
+ *    sitting static.
+ *  - `ai-glow-pulse` breathes a soft matching-color box-shadow in and out.
+ * Both are slow (3.5s+) and low-amplitude on purpose — a living accent,
+ * not a flashing one — and are disabled outright for users who've asked
+ * for reduced motion.
+ */
+@keyframes ai-border-shimmer {
+  0% {
+    background-position: 0 0, 0% 50%;
+  }
+  100% {
+    background-position: 0 0, 200% 50%;
+  }
+}
+
+@keyframes ai-glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 14px 0px rgba(234, 7, 7, 0.16), 0 0 28px 2px rgba(253, 138, 72, 0.08);
+  }
+  50% {
+    box-shadow: 0 0 22px 2px rgba(234, 7, 7, 0.3), 0 0 44px 8px rgba(253, 138, 72, 0.18);
+  }
+}
+
+.ai-glow-border {
+  background-size: auto, 220% 220%;
+  animation:
+    ai-border-shimmer 7s linear infinite,
+    ai-glow-pulse 3.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-glow-border {
+    animation: none;
+  }
+}
+
+/**
+ * Same idea as `.ai-glow-border` above, scaled down for compact elements
+ * (e.g. the "Ask AI" pill button) — the full-size glow's blur/spread was
+ * tuned for a large card and would read as an oversized halo on something
+ * this small, so the pulse here is noticeably gentler.
+ */
+@keyframes ai-glow-pulse-sm {
+  0%,
+  100% {
+    box-shadow: 0 0 5px 0px rgba(234, 7, 7, 0.14), 0 0 10px 1px rgba(253, 138, 72, 0.08);
+  }
+  50% {
+    box-shadow: 0 0 9px 1px rgba(234, 7, 7, 0.24), 0 0 16px 2px rgba(253, 138, 72, 0.13);
+  }
+}
+
+.ai-glow-border-sm {
+  background-size: auto, 220% 220%;
+  animation:
+    ai-border-shimmer 7s linear infinite,
+    ai-glow-pulse-sm 3.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-glow-border-sm {
+    animation: none;
+  }
+}

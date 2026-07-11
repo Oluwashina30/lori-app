@@ -1,0 +1,118 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")   // Supabase pooled connection (port 6543, pgbouncer) — used at runtime by serverless functions
+  directUrl = env("DIRECT_URL")     // Supabase direct connection (port 5432) — used only by `prisma migrate`
+}
+
+enum TransactionType {
+  CONTRIBUTION // money moved into a goal
+  EXPENSE      // money spent (tracked for insight/anomaly purposes)
+  WITHDRAWAL   // money pulled out of a goal
+}
+
+enum TransactionSource {
+  CHAT
+  MANUAL
+  AI_AUTO_SAVE
+}
+
+enum GoalStatus {
+  ACTIVE
+  COMPLETED
+  PAUSED
+  ABANDONED
+}
+
+enum InsightType {
+  SPENDING_PATTERN
+  FORECAST
+  ANOMALY
+  SUGGESTION
+  AUTO_SAVE_RECOMMENDATION
+}
+
+model User {
+  id            String    @id @default(uuid())
+  name          String
+  email         String    @unique
+  currency      String    @default("NGN")
+  monthlyIncome Decimal?  @db.Decimal(14, 2)
+  riskTolerance String    @default("moderate") // conservative | moderate | aggressive — informs AI auto-save sizing
+  createdAt     DateTime  @default(now())
+
+  goals        Goal[]
+  transactions Transaction[]
+  insights     Insight[]
+  chatMessages ChatMessage[]
+}
+
+model Goal {
+  id            String     @id @default(uuid())
+  userId        String
+  user          User       @relation(fields: [userId], references: [id])
+  name          String
+  targetAmount  Decimal    @db.Decimal(14, 2)
+  currentAmount Decimal    @default(0) @db.Decimal(14, 2)
+  deadline      DateTime?
+  status        GoalStatus @default(ACTIVE)
+  createdByAI   Boolean    @default(false)
+  category      String?    // e.g. "emergency_fund", "travel", "gadget"
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  transactions Transaction[]
+  insights     Insight[]
+
+  @@index([userId, status])
+}
+
+model Transaction {
+  id          String            @id @default(uuid())
+  userId      String
+  user        User              @relation(fields: [userId], references: [id])
+  goalId      String?
+  goal        Goal?             @relation(fields: [goalId], references: [id])
+  type        TransactionType
+  source      TransactionSource @default(MANUAL)
+  amount      Decimal           @db.Decimal(14, 2)
+  category    String?           // e.g. "food", "transport", "subscriptions"
+  description String?
+  rawInput    String?           // original chat text that produced this, for audit/debug
+  createdAt   DateTime          @default(now())
+
+  @@index([userId, createdAt])
+  @@index([userId, category])
+}
+
+model Insight {
+  id            String      @id @default(uuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id])
+  goalId        String?
+  goal          Goal?       @relation(fields: [goalId], references: [id])
+  type          InsightType
+  title         String
+  content       String
+  data          Json?       // structured payload (e.g. forecast numbers, chart data)
+  dismissed     Boolean     @default(false)
+  actedOn       Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+
+  @@index([userId, type, dismissed])
+}
+
+model ChatMessage {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  role          String   // "user" | "assistant"
+  content       String
+  parsedAction  Json?    // the structured tool call that was extracted, if any
+  createdAt     DateTime @default(now())
+
+  @@index([userId, createdAt])
+}

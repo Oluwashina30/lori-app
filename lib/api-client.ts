@@ -1,0 +1,48 @@
+/**
+ * Thin fetch wrapper around this app's own /api routes (Next.js Route
+ * Handlers under app/api/*). Same-origin, so no CORS config needed. Auth
+ * is a Supabase session cookie (see middleware.ts + lib/server/auth.ts) —
+ * same-origin fetch sends it automatically, no header wiring needed here.
+ */
+
+async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const res = await fetch(`/api${path}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`API ${path} failed: ${res.status} ${body}`);
+  }
+
+  return res.json();
+}
+
+export interface ChatApiResponse {
+  reply: string;
+  action:
+    | "create_goal"
+    | "add_contribution"
+    | "log_expense"
+    | "request_insight"
+    | "chit_chat";
+  data?: unknown;
+  needsClarification: boolean;
+}
+
+export function sendChatMessage(message: string): Promise<ChatApiResponse> {
+  return apiFetch<ChatApiResponse>("/chat", {
+    method: "POST",
+    body: JSON.stringify({ message }),
+  });
+}
+
+// Raw shape matches DashboardData from lib/types.ts — the backend's
+// dashboardService.ts is written to return exactly this shape.
+export function fetchDashboardDataFromApi<T>(): Promise<T> {
+  return apiFetch<T>("/dashboard");
+}
