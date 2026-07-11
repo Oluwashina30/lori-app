@@ -1,10 +1,20 @@
 "use client";
 
+import * as React from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 
 export function GoogleButton() {
+  // Google's authorization code is single-use — a second tap while the
+  // first redirect is still in flight (common on mobile touch, where the
+  // browser navigation doesn't happen instantly) fires a second /authorize
+  // request and burns the code, causing Supabase to fail with "unable to
+  // exchange external code" on whichever attempt completes second.
+  const [loading, setLoading] = React.useState(false);
+
   async function handleClick() {
+    if (loading) return;
+    setLoading(true);
     const supabase = createClient();
     await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -13,7 +23,14 @@ export function GoogleButton() {
   }
 
   return (
-    <Button type="button" variant="outline" size="lg" onClick={handleClick} className="w-full">
+    <Button
+      type="button"
+      variant="outline"
+      size="lg"
+      onClick={handleClick}
+      disabled={loading}
+      className="w-full"
+    >
       <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
         <path
           fill="#4285F4"
