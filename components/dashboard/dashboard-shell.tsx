@@ -38,17 +38,16 @@ export function DashboardShell({ data }: DashboardShellProps) {
 
   return (
     <AppShell user={data.user}>
-      <div className="flex flex-col gap-5">
-        <GreetingSection name={data.user.name} subtitle={data.greetingSubtitle} />
-        <AIRecommendationBanner message={data.recommendation.message} />
-      </div>
+      <GreetingSection name={data.user.name} subtitle={data.greetingSubtitle} />
+
+      <TotalSavingsCard summary={data.savingsSummary} />
+
+      <AIRecommendationBanner message={data.recommendation.message} />
 
       <div className="flex flex-col gap-4">
         <ChatComposer value={composerValue} onChange={setComposerValue} onSubmit={handleSubmit} />
         <SuggestionChips suggestions={data.chatSuggestions} onSelect={handleSuggestionSelect} />
       </div>
-
-      <TotalSavingsCard summary={data.savingsSummary} />
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         <SavingsPlanCard items={data.savingsPlan} className="md:col-span-1" />
