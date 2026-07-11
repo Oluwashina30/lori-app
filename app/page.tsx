@@ -1,17 +1,13 @@
 import { redirect } from "next/navigation";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
-import { createClient } from "@/lib/supabase/server";
+import { getUserId } from "@/lib/server/auth";
 import { getDashboardData } from "@/lib/server/services/dashboardService";
 import type { DashboardData } from "@/lib/types";
 
 export default async function Home() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const userId = await getUserId();
+  if (!userId) redirect("/login");
 
-  if (!user) redirect("/login");
-
-  const data = (await getDashboardData(user.id)) as DashboardData;
+  const data = (await getDashboardData(userId)) as DashboardData;
   return <DashboardShell data={data} />;
 }

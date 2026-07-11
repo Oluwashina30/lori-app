@@ -27,36 +27,36 @@ function goalStatus(current: number, target: number): "in-progress" | "complete"
  * lib/types.ts's DashboardData interface on the frontend.
  */
 export async function getDashboardData(userId: string) {
-  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
-  const goals = await prisma.goal.findMany({
-    where: { userId, status: "ACTIVE" },
-    orderBy: { createdAt: "asc" },
-  });
-
   const startOfMonth = new Date();
   startOfMonth.setDate(1);
   startOfMonth.setHours(0, 0, 0, 0);
 
-  const monthTxns = await prisma.transaction.findMany({
-    where: { userId, createdAt: { gte: startOfMonth } },
-    orderBy: { createdAt: "desc" },
-  });
-
-  const recentTxns = await prisma.transaction.findMany({
-    where: { userId },
-    orderBy: { createdAt: "desc" },
-    take: 10,
-  });
-
-  const latestRecommendation = await prisma.insight.findFirst({
-    where: { userId, type: "AUTO_SAVE_RECOMMENDATION", dismissed: false },
-    orderBy: { createdAt: "desc" },
-  });
-
-  const latestInsight = await prisma.insight.findFirst({
-    where: { userId, dismissed: false },
-    orderBy: { createdAt: "desc" },
-  });
+  // All six reads are independent — fire them in parallel instead of
+  // waiting on each round trip in sequence.
+  const [user, goals, monthTxns, recentTxns, latestRecommendation, latestInsight] = await Promise.all([
+    prisma.user.findUniqueOrThrow({ where: { id: userId } }),
+    prisma.goal.findMany({
+      where: { userId, status: "ACTIVE" },
+      orderBy: { createdAt: "asc" },
+    }),
+    prisma.transaction.findMany({
+      where: { userId, createdAt: { gte: startOfMonth } },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.transaction.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+    }),
+    prisma.insight.findFirst({
+      where: { userId, type: "AUTO_SAVE_RECOMMENDATION", dismissed: false },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.insight.findFirst({
+      where: { userId, dismissed: false },
+      orderBy: { createdAt: "desc" },
+    }),
+  ]);
 
   const totalSaved = goals.reduce((sum, g) => sum + Number(g.currentAmount), 0);
   const primaryGoal = goals[0]; // simplest "which goal to headline" rule — swap for nearest-deadline once you have >1 goal reliably
