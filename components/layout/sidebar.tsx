@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { buttonVariants } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
+import { Logo } from "@/components/layout/logo";
 import { SparkleIcon } from "@/components/icons";
 import {
   DashboardGridIcon,
@@ -313,7 +314,7 @@ export function Sidebar({ expanded, onToggleExpanded, className, onNavigate }: S
             expanded ? "justify-start" : "justify-center"
           )}
         >
-          <span className="text-base font-bold tracking-tight text-foreground">Logo</span>
+          <Logo />
         </div>
 
         <nav aria-label="Primary" className="mt-8 flex flex-col items-center gap-3 px-3.5">

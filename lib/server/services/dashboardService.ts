@@ -106,7 +106,7 @@ export async function getDashboardData(userId: string) {
       goalPercentComplete: primaryGoal
         ? Math.min(100, Math.round((Number(primaryGoal.currentAmount) / Number(primaryGoal.targetAmount)) * 100))
         : 0,
-      goalLabel: primaryGoal ? primaryGoal.name : "No active goal yet",
+      goalLabel: primaryGoal ? "Monthly savings goal" : "No active goal yet",
       insightMessage: latestInsight?.content ?? "Start a goal from the chat box to see progress here.",
     },
     savingsPlan: goals.map((g) => ({
