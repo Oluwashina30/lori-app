@@ -11,6 +11,14 @@ export async function GET(req: NextRequest) {
   const { searchParams, origin } = req.nextUrl;
   const code = searchParams.get("code");
 
+  // Google/Supabase report OAuth failures (denied consent, provider errors)
+  // via these query params instead of a `code` — surface them instead of
+  // silently bouncing to /login with no explanation.
+  const providerError = searchParams.get("error_description") || searchParams.get("error");
+  if (providerError) {
+    return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(providerError)}`);
+  }
+
   if (code) {
     const supabase = await createClient();
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
@@ -19,7 +27,11 @@ export async function GET(req: NextRequest) {
       await ensureUserRecord(data.user);
       return NextResponse.redirect(`${origin}/`);
     }
+
+    if (error) {
+      return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error.message)}`);
+    }
   }
 
-  return NextResponse.redirect(`${origin}/login`);
+  return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent("No authorization code received")}`);
 }
