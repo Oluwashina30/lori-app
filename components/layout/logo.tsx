@@ -4,7 +4,12 @@ export interface LogoProps {
   className?: string;
 }
 
-/** "Lori" wordmark, brand asset at public/icons/lori-logo.svg. */
+/**
+ * "Lori" wordmark, brand asset at public/icons/lori-logo.svg. Defaults to
+ * a height that fits the collapsed sidebar rail (88px wide, ~60px of
+ * content width after padding — see lib/sidebar-constants.ts) without
+ * overflowing; override className for contexts with more room.
+ */
 export function Logo({ className }: LogoProps) {
-  return <img src="/icons/lori-logo.svg" alt="Lori" width={80} height={36} className={cn("h-9 w-auto", className)} />;
+  return <img src="/icons/lori-logo.svg" alt="Lori" width={80} height={36} className={cn("h-6 w-auto", className)} />;
 }

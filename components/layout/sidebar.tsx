@@ -382,7 +382,7 @@ export function MobileTopBar({ user, onNavigate }: MobileTopBarProps) {
         >
           <HamburgerIcon open={open} />
         </button>
-        <span className="text-base font-bold tracking-tight text-foreground">Logo</span>
+        <Logo className="h-7 w-auto" />
       </div>
 
       <div className="flex items-center gap-3">
