@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { GraduationCap, Heart, Briefcase, Plus } from "lucide-react";
 import { CarIcon, HouseIcon, PlaneIcon, HeartPulseIcon, AttachIcon, MicIcon, ImageAttachIcon, SendButtonIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import { SelectableCard } from "@/components/onboarding/selectable";
 import { cn } from "@/lib/utils";
 import type { GoalCategory } from "@/lib/types";
 
@@ -16,6 +17,7 @@ const CARDS: { category: GoalCategory; label: string; icon: React.ComponentType<
   { category: "wedding", label: "Wedding", icon: Heart },
   { category: "business", label: "Start/Grow a Business", icon: Briefcase },
   { category: "emergency_fund", label: "Emergency", icon: HeartPulseIcon },
+  { category: "other", label: "Something Else", icon: Plus },
 ];
 
 export interface GoalCaptureScreenProps {
@@ -27,7 +29,14 @@ export interface GoalCaptureScreenProps {
 
 export function GoalCaptureScreen({ userName, onSelectCard, onSubmitMessage, loading }: GoalCaptureScreenProps) {
   const [message, setMessage] = React.useState("");
+  const [selected, setSelected] = React.useState<GoalCategory | null>(null);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+
+  function handleSelectCard(category: GoalCategory) {
+    if (loading || selected) return;
+    setSelected(category);
+    onSelectCard(category);
+  }
 
   React.useEffect(() => {
     const el = textareaRef.current;
@@ -62,31 +71,16 @@ export function GoalCaptureScreen({ userName, onSelectCard, onSubmitMessage, loa
 
       <div className="mt-10 grid w-full grid-cols-2 gap-3 sm:grid-cols-4">
         {CARDS.map((card, i) => (
-          <motion.button
+          <SelectableCard
             key={card.category}
-            type="button"
-            disabled={loading}
-            onClick={() => onSelectCard(card.category)}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.1 + i * 0.04, ease: [0.16, 1, 0.3, 1] }}
-            whileHover={{ y: -2 }}
-            whileTap={{ scale: 0.97 }}
-            className="flex flex-col items-center gap-3 rounded-2xl border border-border-subtle bg-surface px-4 py-7 text-foreground transition-colors duration-200 hover:border-border-strong disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-solid/60"
-          >
-            <card.icon className="h-6 w-6" />
-            <span className="text-[13.5px] font-medium">{card.label}</span>
-          </motion.button>
+            icon={card.icon}
+            label={card.label}
+            selected={selected === card.category}
+            disabled={loading || (selected !== null && selected !== card.category)}
+            onClick={() => handleSelectCard(card.category)}
+            delay={0.1 + i * 0.04}
+          />
         ))}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.1 + CARDS.length * 0.04, ease: [0.16, 1, 0.3, 1] }}
-          className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border-subtle px-4 py-7 text-muted"
-        >
-          <Plus className="h-6 w-6" />
-          <span className="text-[13.5px] font-medium">Something Else</span>
-        </motion.div>
       </div>
 
       <motion.div

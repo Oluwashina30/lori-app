@@ -27,7 +27,13 @@ export default async function OnboardingLayout({ children }: { children: React.R
         <Logo className="h-7 w-auto" />
         <Avatar initials={initials} name={user.name} />
       </header>
-      <main className="flex flex-1 flex-col items-center justify-center px-4 pb-16">{children}</main>
+      {/*
+       * Top-anchored, not vertically centered: the reference mockups place
+       * the progress bar at the same fixed position under the header on
+       * every screen, regardless of how much content follows it — centering
+       * the whole block would make it drift up/down per screen.
+       */}
+      <main className="flex flex-1 flex-col items-center px-4 pb-16 pt-8 sm:pt-12">{children}</main>
     </div>
   );
 }

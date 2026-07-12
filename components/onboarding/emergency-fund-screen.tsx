@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Input } from "@/components/ui/input";
-import { SendButtonIcon } from "@/components/icons";
+import { SelectableChip } from "@/components/onboarding/selectable";
+import { SubmitInputRow } from "@/components/onboarding/submit-input-row";
 
 const BUFFER_OPTIONS = [
   { label: "1 month", months: 1 },
@@ -25,6 +25,7 @@ export function EmergencyFundScreen({ onSubmit, loading }: EmergencyFundScreenPr
   const [step, setStep] = React.useState<0 | 1 | 2>(0);
   const [monthlyExpenses, setMonthlyExpenses] = React.useState("");
   const [currentSavings, setCurrentSavings] = React.useState("");
+  const [selectedBuffer, setSelectedBuffer] = React.useState<number | null>(null);
 
   function submitExpenses() {
     const val = Number(monthlyExpenses.replace(/[^0-9.]/g, ""));
@@ -37,7 +38,8 @@ export function EmergencyFundScreen({ onSubmit, loading }: EmergencyFundScreenPr
   }
 
   function submitBuffer(months: number) {
-    if (loading) return;
+    if (loading || selectedBuffer !== null) return;
+    setSelectedBuffer(months);
     onSubmit({
       monthlyExpenses: Number(monthlyExpenses.replace(/[^0-9.]/g, "")),
       currentSavings: Number(currentSavings.replace(/[^0-9.]/g, "")) || 0,
@@ -61,18 +63,17 @@ export function EmergencyFundScreen({ onSubmit, loading }: EmergencyFundScreenPr
               What are your monthly expenses?
             </h1>
             <p className="mt-2 text-[15px] text-muted">This sets a realistic baseline for your safety buffer.</p>
-            <div className="mt-8 flex w-full items-center gap-2">
-              <Input
+            <div className="mt-8 w-full">
+              <SubmitInputRow
                 type="text"
                 inputMode="decimal"
                 value={monthlyExpenses}
-                onChange={(e) => setMonthlyExpenses(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && submitExpenses()}
+                onChange={setMonthlyExpenses}
+                onSubmit={submitExpenses}
                 placeholder="150,000"
+                ariaLabel="Monthly expenses"
                 autoFocus
-                className="h-14 text-[17px]"
               />
-              <SubmitArrow onClick={submitExpenses} disabled={!monthlyExpenses.trim()} />
             </div>
           </motion.div>
         )}
@@ -90,18 +91,17 @@ export function EmergencyFundScreen({ onSubmit, loading }: EmergencyFundScreenPr
               How much do you already have saved?
             </h1>
             <p className="mt-2 text-[15px] text-muted">Enter 0 if you&apos;re starting fresh — that&apos;s a fine place to start.</p>
-            <div className="mt-8 flex w-full items-center gap-2">
-              <Input
+            <div className="mt-8 w-full">
+              <SubmitInputRow
                 type="text"
                 inputMode="decimal"
                 value={currentSavings}
-                onChange={(e) => setCurrentSavings(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && submitSavings()}
+                onChange={setCurrentSavings}
+                onSubmit={submitSavings}
                 placeholder="0"
+                ariaLabel="Current savings"
                 autoFocus
-                className="h-14 text-[17px]"
               />
-              <SubmitArrow onClick={submitSavings} disabled={false} />
             </div>
           </motion.div>
         )}
@@ -121,34 +121,19 @@ export function EmergencyFundScreen({ onSubmit, loading }: EmergencyFundScreenPr
             <p className="mt-2 text-[15px] text-muted">Most people aim for 3 — you can always adjust later.</p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               {BUFFER_OPTIONS.map((opt) => (
-                <button
+                <SelectableChip
                   key={opt.months}
-                  type="button"
-                  disabled={loading}
+                  selected={selectedBuffer === opt.months}
+                  disabled={loading || (selectedBuffer !== null && selectedBuffer !== opt.months)}
                   onClick={() => submitBuffer(opt.months)}
-                  className="rounded-xl border border-border-subtle bg-surface px-7 py-3.5 text-[14.5px] font-medium text-foreground transition-colors duration-200 hover:border-border-strong disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-solid/60"
                 >
                   {opt.label}
-                </button>
+                </SelectableChip>
               ))}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
     </div>
-  );
-}
-
-function SubmitArrow({ onClick, disabled }: { onClick: () => void; disabled: boolean }) {
-  return (
-    <button
-      type="button"
-      aria-label="Continue"
-      onClick={onClick}
-      disabled={disabled}
-      className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl transition-transform duration-200 hover:scale-105 active:scale-95 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-solid/60"
-    >
-      <SendButtonIcon className="h-14 w-14" />
-    </button>
   );
 }

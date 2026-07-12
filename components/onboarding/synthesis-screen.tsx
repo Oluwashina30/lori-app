@@ -34,14 +34,9 @@ export function SynthesisScreen() {
         transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
         className="ai-glow-border-sm flex w-full items-center gap-3 rounded-2xl border border-transparent bg-surface px-7 py-6 [background:linear-gradient(var(--surface),var(--surface))_padding-box,linear-gradient(120deg,var(--accent-from),var(--accent-to))_border-box]"
       >
-        <motion.span
-          animate={{ rotate: 360 }}
-          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-          className="text-xl"
-          aria-hidden
-        >
+        <span className="text-xl" aria-hidden>
           💡
-        </motion.span>
+        </span>
         <div className="text-left">
           <p className="text-[17px] font-semibold text-foreground">Building your personalized plan</p>
           <AnimatePresence mode="wait">

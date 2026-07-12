@@ -15,6 +15,12 @@
   --accent-solid: #fb7d3f;
   --positive: #4ade80;
   --negative: #fb7185;
+  /* Onboarding progress gradient — a distinct "warming up" orange-yellow-green
+     ramp (not the brand orange/red accent) used for the step indicator and
+     the final plan-reveal card border, matching the onboarding mockups. */
+  --progress-from: #fd8a48;
+  --progress-via: #ffd34f;
+  --progress-to: #84ea18;
 }
 
 @theme inline {
@@ -32,6 +38,9 @@
   --color-accent-solid: var(--accent-solid);
   --color-positive: var(--positive);
   --color-negative: var(--negative);
+  --color-progress-from: var(--progress-from);
+  --color-progress-via: var(--progress-via);
+  --color-progress-to: var(--progress-to);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -102,6 +111,20 @@ body {
 .focus-gradient-ring:focus-within::before,
 .focus-gradient-ring:focus::before {
   opacity: 1;
+}
+
+/**
+ * Static (non-animated) gradient border via the same padding-box/border-box
+ * trick as `.ai-glow-border`, for elements that need a permanent gradient
+ * outline without the shimmer/pulse — e.g. a selected onboarding card, or
+ * the plan-reveal summary card. Override `--gradient-border-image` inline
+ * to swap the gradient (defaults to the brand accent gradient).
+ */
+.gradient-border-static {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--gradient-border-fill, var(--surface)), var(--gradient-border-fill, var(--surface))) padding-box,
+    var(--gradient-border-image, linear-gradient(135deg, var(--accent-from), var(--accent-via), var(--accent-to))) border-box;
 }
 
 /**

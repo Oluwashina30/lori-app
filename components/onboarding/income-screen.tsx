@@ -1,7 +1,8 @@
 "use client";
 
+import * as React from "react";
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
+import { SelectableChip } from "@/components/onboarding/selectable";
 
 const BRACKETS = [
   { key: "less_than_500", label: "Less than $500" },
@@ -9,6 +10,7 @@ const BRACKETS = [
   { key: "2000_5000", label: "$2,000 - $5,000" },
   { key: "5000_10000", label: "$5,000 - $10,000" },
   { key: "more_than_10000", label: "More than $10,000" },
+  { key: "skip", label: "I'd rather not say" },
 ];
 
 export interface IncomeScreenProps {
@@ -17,6 +19,14 @@ export interface IncomeScreenProps {
 }
 
 export function IncomeScreen({ onSelect, loading }: IncomeScreenProps) {
+  const [selected, setSelected] = React.useState<string | null>(null);
+
+  function handleSelect(key: string) {
+    if (loading || selected) return;
+    setSelected(key);
+    onSelect(key);
+  }
+
   return (
     <div className="flex w-full max-w-2xl flex-col items-center text-center">
       <motion.h1
@@ -43,33 +53,15 @@ export function IncomeScreen({ onSelect, loading }: IncomeScreenProps) {
         className="mt-8 flex flex-wrap justify-center gap-3"
       >
         {BRACKETS.map((b) => (
-          <button
+          <SelectableChip
             key={b.key}
-            type="button"
-            disabled={loading}
-            onClick={() => onSelect(b.key)}
-            className="rounded-xl border border-border-subtle bg-surface px-6 py-3.5 text-[14.5px] font-medium text-foreground transition-colors duration-200 hover:border-border-strong disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-solid/60"
+            selected={selected === b.key}
+            disabled={loading || (selected !== null && selected !== b.key)}
+            onClick={() => handleSelect(b.key)}
           >
             {b.label}
-          </button>
+          </SelectableChip>
         ))}
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.4, delay: 0.3 }}
-      >
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          disabled={loading}
-          onClick={() => onSelect("skip")}
-          className="mt-6"
-        >
-          I&apos;d rather not say
-        </Button>
       </motion.div>
     </div>
   );

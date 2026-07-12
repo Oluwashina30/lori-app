@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
-import { Input } from "@/components/ui/input";
-import { SendButtonIcon } from "@/components/icons";
+import { SelectableChip } from "@/components/onboarding/selectable";
+import { SubmitInputRow } from "@/components/onboarding/submit-input-row";
 
 const TIMELINE_OPTIONS = [
   { label: "In 1 month", months: 1 },
@@ -40,28 +40,19 @@ export function AmountFollowUp({ onSubmit, loading }: AmountFollowUpProps) {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-        className="mt-8 flex w-full items-center gap-2"
+        className="mt-8 w-full"
       >
-        <Input
+        <SubmitInputRow
           type="text"
           inputMode="decimal"
           value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+          onChange={setValue}
+          onSubmit={handleSubmit}
           placeholder="500,000"
-          aria-label="Estimated amount needed"
+          ariaLabel="Estimated amount needed"
           autoFocus
-          className="h-14 text-[17px]"
+          disabled={loading}
         />
-        <button
-          type="button"
-          aria-label="Submit"
-          onClick={handleSubmit}
-          disabled={loading || !value.trim()}
-          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl transition-transform duration-200 hover:scale-105 active:scale-95 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-solid/60"
-        >
-          <SendButtonIcon className="h-14 w-14" />
-        </button>
       </motion.div>
     </div>
   );
@@ -75,6 +66,19 @@ export interface TimelineFollowUpProps {
 export function TimelineFollowUp({ onSubmit, loading }: TimelineFollowUpProps) {
   const [showCustom, setShowCustom] = React.useState(false);
   const [customDate, setCustomDate] = React.useState("");
+  const [selected, setSelected] = React.useState<string | null>(null);
+
+  function handleSelect(label: string, isoDate: string) {
+    if (loading || selected) return;
+    setSelected(label);
+    onSubmit(isoDate);
+  }
+
+  function handleCustomSubmit() {
+    if (!customDate || loading || selected) return;
+    setSelected("Custom Date");
+    onSubmit(customDate);
+  }
 
   return (
     <div className="flex w-full max-w-2xl flex-col items-center text-center">
@@ -86,13 +90,22 @@ export function TimelineFollowUp({ onSubmit, loading }: TimelineFollowUpProps) {
         className="mt-8 flex flex-wrap justify-center gap-3"
       >
         {TIMELINE_OPTIONS.map((opt) => (
-          <ChipButton key={opt.label} disabled={loading} onClick={() => onSubmit(monthsFromNowISO(opt.months))}>
+          <SelectableChip
+            key={opt.label}
+            selected={selected === opt.label}
+            disabled={loading || (selected !== null && selected !== opt.label)}
+            onClick={() => handleSelect(opt.label, monthsFromNowISO(opt.months))}
+          >
             {opt.label}
-          </ChipButton>
+          </SelectableChip>
         ))}
-        <ChipButton active={showCustom} disabled={loading} onClick={() => setShowCustom(true)}>
+        <SelectableChip
+          selected={showCustom || selected === "Custom Date"}
+          disabled={loading || (selected !== null && selected !== "Custom Date")}
+          onClick={() => setShowCustom(true)}
+        >
           Custom Date
-        </ChipButton>
+        </SelectableChip>
       </motion.div>
 
       {showCustom && (
@@ -100,25 +113,18 @@ export function TimelineFollowUp({ onSubmit, loading }: TimelineFollowUpProps) {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-6 flex w-full max-w-xs items-center gap-2"
+          className="mt-6 w-full max-w-xs"
         >
-          <Input
+          <SubmitInputRow
             type="date"
             value={customDate}
-            onChange={(e) => setCustomDate(e.target.value)}
+            onChange={setCustomDate}
+            onSubmit={handleCustomSubmit}
+            ariaLabel="Custom target date"
             min={new Date().toISOString().slice(0, 10)}
-            aria-label="Custom target date"
             autoFocus
+            disabled={loading}
           />
-          <button
-            type="button"
-            aria-label="Submit date"
-            onClick={() => customDate && onSubmit(customDate)}
-            disabled={loading || !customDate}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-transform duration-200 hover:scale-105 active:scale-95 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-solid/60"
-          >
-            <SendButtonIcon className="h-11 w-11" />
-          </button>
         </motion.div>
       )}
     </div>
@@ -145,33 +151,5 @@ function Heading({ title, subtitle }: { title: string; subtitle: string }) {
         {subtitle}
       </motion.p>
     </>
-  );
-}
-
-function ChipButton({
-  children,
-  onClick,
-  disabled,
-  active,
-}: {
-  children: React.ReactNode;
-  onClick: () => void;
-  disabled?: boolean;
-  active?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      className={
-        "rounded-xl border px-6 py-3.5 text-[14.5px] font-medium transition-colors duration-200 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-solid/60 " +
-        (active
-          ? "border-accent-solid bg-surface text-foreground"
-          : "border-border-subtle bg-surface text-foreground hover:border-border-strong")
-      }
-    >
-      {children}
-    </button>
   );
 }

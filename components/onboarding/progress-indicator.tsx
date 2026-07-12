@@ -42,7 +42,7 @@ export function ProgressIndicator({ phase, onBack, className }: ProgressIndicato
             animate={{
               background:
                 i <= currentIndex
-                  ? "linear-gradient(90deg, var(--accent-from), var(--accent-to))"
+                  ? "linear-gradient(90deg, var(--progress-from), var(--progress-via), var(--progress-to))"
                   : "rgba(255,255,255,0.08)",
             }}
             transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}

@@ -52,7 +52,10 @@ export function PlanRevealScreen({ plan, onContinue }: PlanRevealScreenProps) {
         Your personalized savings strategy is ready
       </h1>
 
-      <Card className="mt-8 w-full text-left">
+      <Card
+        className="gradient-border-static mt-8 w-full text-left"
+        style={{ "--gradient-border-image": "linear-gradient(90deg, var(--progress-from), var(--progress-via), var(--progress-to))" } as React.CSSProperties}
+      >
         <dl className="flex flex-col gap-4">
           <Row label="Goal" value={plan.goal.name} />
           <Row label="Category" value={CATEGORY_LABEL[plan.goal.category] ?? plan.goal.category} />
