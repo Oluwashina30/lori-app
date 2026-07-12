@@ -10,8 +10,8 @@ export default async function OnboardingPage() {
 
   const [state, user] = await Promise.all([
     getOrCreateSession(userId),
-    prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { name: true } }),
+    prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { name: true, currency: true } }),
   ]);
 
-  return <OnboardingFlow initialState={state} userName={user.name} />;
+  return <OnboardingFlow initialState={state} userName={user.name} currency={user.currency} />;
 }

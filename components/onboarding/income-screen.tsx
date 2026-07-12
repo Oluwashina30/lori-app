@@ -3,23 +3,18 @@
 import * as React from "react";
 import { motion } from "framer-motion";
 import { SelectableChip } from "@/components/onboarding/selectable";
-
-const BRACKETS = [
-  { key: "less_than_500", label: "Less than $500" },
-  { key: "500_2000", label: "$500 - $2,000" },
-  { key: "2000_5000", label: "$2,000 - $5,000" },
-  { key: "5000_10000", label: "$5,000 - $10,000" },
-  { key: "more_than_10000", label: "More than $10,000" },
-  { key: "skip", label: "I'd rather not say" },
-];
+import { getIncomeBrackets } from "@/lib/income-brackets";
 
 export interface IncomeScreenProps {
   onSelect: (bracket: string) => void;
   loading: boolean;
+  /** Drives the bracket amounts/symbol shown — the user's own currency, not a hardcoded "$". */
+  currency: string;
 }
 
-export function IncomeScreen({ onSelect, loading }: IncomeScreenProps) {
+export function IncomeScreen({ onSelect, loading, currency }: IncomeScreenProps) {
   const [selected, setSelected] = React.useState<string | null>(null);
+  const brackets = React.useMemo(() => getIncomeBrackets(currency), [currency]);
 
   function handleSelect(key: string) {
     if (loading || selected) return;
@@ -52,7 +47,7 @@ export function IncomeScreen({ onSelect, loading }: IncomeScreenProps) {
         transition={{ duration: 0.4, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
         className="mt-8 flex flex-wrap justify-center gap-3"
       >
-        {BRACKETS.map((b) => (
+        {brackets.map((b) => (
           <SelectableChip
             key={b.key}
             selected={selected === b.key}

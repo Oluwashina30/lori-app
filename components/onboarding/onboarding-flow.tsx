@@ -34,9 +34,10 @@ async function postOnboarding(body: unknown): Promise<OnboardingState> {
 export interface OnboardingFlowProps {
   initialState: OnboardingState;
   userName: string;
+  currency: string;
 }
 
-export function OnboardingFlow({ initialState, userName }: OnboardingFlowProps) {
+export function OnboardingFlow({ initialState, userName, currency }: OnboardingFlowProps) {
   const router = useRouter();
   const [state, setState] = React.useState(initialState);
   const [history, setHistory] = React.useState<OnboardingState[]>([]);
@@ -125,7 +126,11 @@ export function OnboardingFlow({ initialState, userName }: OnboardingFlowProps) 
               }
             />
           ) : state.step === "income" ? (
-            <IncomeScreen loading={loading} onSelect={(bracket) => advance({ kind: "income", bracket })} />
+            <IncomeScreen
+              loading={loading}
+              currency={currency}
+              onSelect={(bracket) => advance({ kind: "income", bracket })}
+            />
           ) : null}
         </motion.div>
       </AnimatePresence>

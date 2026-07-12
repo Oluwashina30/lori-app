@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { captureGoal } from "@/lib/server/ai/onboardingParser";
 import * as goalService from "@/lib/server/services/goalService";
+import { incomeBracketMidpoint } from "@/lib/income-brackets";
 import type {
   OnboardingAnswers,
   OnboardingGoalDraft,
@@ -12,17 +13,6 @@ import type {
 } from "@/lib/types";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
-// Midpoint estimate per bracket, in the user's currency — used only to size
-// a realistic weekly contribution and a confidence score, never shown back
-// to the user as a fabricated precise number.
-const INCOME_BRACKET_MIDPOINT: Record<string, number> = {
-  less_than_500: 375,
-  "500_2000": 1250,
-  "2000_5000": 3500,
-  "5000_10000": 7500,
-  more_than_10000: 12500,
-};
 
 const DEFAULT_PLANNING_WEEKS = 12; // used when a goal has no deadline (e.g. emergency fund)
 
@@ -126,11 +116,11 @@ export async function submitAnswer(userId: string, payload: SubmitPayload): Prom
   return toState(updated);
 }
 
-function computeConfidence(recommendedContribution: number, incomeBracket: string | undefined) {
+function computeConfidence(recommendedContribution: number, currency: string, incomeBracket: string | undefined) {
   if (!incomeBracket || incomeBracket === "skip") {
     return { score: 0.5, label: "Medium" as const };
   }
-  const monthlyIncome = INCOME_BRACKET_MIDPOINT[incomeBracket];
+  const monthlyIncome = incomeBracketMidpoint(currency, incomeBracket);
   if (!monthlyIncome) return { score: 0.5, label: "Medium" as const };
 
   const weeklyIncome = monthlyIncome / 4.33;
@@ -151,6 +141,8 @@ export async function completeOnboarding(userId: string): Promise<OnboardingPlan
     throw new Error("Onboarding goal draft is incomplete — cannot finalize yet.");
   }
 
+  const { currency } = await prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { currency: true } });
+
   const goal = await goalService.createGoal(userId, {
     name: goalDraft.name,
     targetAmount: goalDraft.targetAmount,
@@ -165,6 +157,7 @@ export async function completeOnboarding(userId: string): Promise<OnboardingPlan
   const recommendedContribution = goalDraft.targetAmount / weeksRemaining;
   const { score: confidenceScore, label: confidenceLabel } = computeConfidence(
     recommendedContribution,
+    currency,
     answers.incomeBracket
   );
 
@@ -206,7 +199,9 @@ Write exactly one short sentence (max ~20 words) for a plan-reveal screen: if co
   });
 
   const monthlyIncome =
-    answers.incomeBracket && answers.incomeBracket !== "skip" ? INCOME_BRACKET_MIDPOINT[answers.incomeBracket] : undefined;
+    answers.incomeBracket && answers.incomeBracket !== "skip"
+      ? (incomeBracketMidpoint(currency, answers.incomeBracket) ?? undefined)
+      : undefined;
 
   const updatedUser = await prisma.user.update({
     where: { id: userId },
