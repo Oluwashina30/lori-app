@@ -24,7 +24,7 @@ export default async function OnboardingLayout({ children }: { children: React.R
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="flex items-center justify-between px-6 py-6 sm:px-10">
-        <Logo className="h-7 w-auto" />
+        <Logo className="h-6 w-auto" />
         <Avatar initials={initials} name={user.name} />
       </header>
       {/*
