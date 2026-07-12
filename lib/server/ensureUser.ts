@@ -1,5 +1,6 @@
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { prisma } from "@/lib/prisma";
+import { detectCurrencyFromRequest } from "@/lib/server/geo";
 
 /**
  * Upserts the Prisma User row for a given Supabase Auth user, reusing the
@@ -14,6 +15,8 @@ export async function ensureUserRecord(user: SupabaseUser) {
     (user.user_metadata?.name as string | undefined) ||
     (user.email ? user.email.split("@")[0] : "New User");
 
+  const currency = await detectCurrencyFromRequest();
+
   await prisma.user.upsert({
     where: { id: user.id },
     update: {},
@@ -21,7 +24,7 @@ export async function ensureUserRecord(user: SupabaseUser) {
       id: user.id,
       name,
       email: user.email!,
-      currency: "NGN",
+      currency,
       riskTolerance: "moderate",
     },
   });

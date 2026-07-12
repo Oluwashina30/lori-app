@@ -41,11 +41,11 @@ const NAV_ITEMS: NavItem[] = [
   { id: "ai", label: "AI Insights", icon: BrainIcon, href: "/insights" },
 ];
 
-const SETTINGS_ITEM: NavItem = { id: "settings", label: "Settings", icon: SettingsGearIcon };
+const SETTINGS_ITEM: NavItem = { id: "settings", label: "Settings", icon: SettingsGearIcon, href: "/settings" };
 const LOGOUT_ITEM: NavItem = { id: "logout", label: "Log out", icon: LogOutIcon };
 
 /** Signs out of Supabase and sends the user to /login (middleware.ts would redirect there anyway). */
-function useLogout() {
+export function useLogout() {
   const router = useRouter();
   return React.useCallback(async () => {
     const supabase = createClient();

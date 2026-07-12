@@ -59,6 +59,19 @@ export interface AIInsight {
   message: string;
 }
 
+export type RiskTolerance = "conservative" | "moderate" | "aggressive";
+
+/** Full account record backing the Settings page — a superset of UserProfile. */
+export interface UserSettings {
+  id: string;
+  name: string;
+  email: string;
+  currency: string;
+  riskTolerance: RiskTolerance;
+  monthlyIncome: number | null;
+  createdAt: string;
+}
+
 export type InsightRecordType =
   | "SPENDING_PATTERN"
   | "FORECAST"

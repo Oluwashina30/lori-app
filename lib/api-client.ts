@@ -5,7 +5,7 @@
  * same-origin fetch sends it automatically, no header wiring needed here.
  */
 
-import type { InsightRecord } from "./types";
+import type { InsightRecord, UserSettings } from "./types";
 
 async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const res = await fetch(`/api${path}`, {
@@ -64,4 +64,21 @@ export function askInsight(query: string): Promise<InsightRecord> {
 
 export function dismissInsight(id: string): Promise<{ ok: boolean }> {
   return apiFetch<{ ok: boolean }>(`/insights/${id}/dismiss`, { method: "POST" });
+}
+
+export function fetchUserSettings(): Promise<UserSettings> {
+  return apiFetch<UserSettings>("/settings");
+}
+
+export function updateUserSettings(
+  data: Partial<Pick<UserSettings, "name" | "currency" | "riskTolerance" | "monthlyIncome">>
+): Promise<UserSettings> {
+  return apiFetch<UserSettings>("/settings", {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+export function deleteAccount(): Promise<{ ok: boolean }> {
+  return apiFetch<{ ok: boolean }>("/settings/delete-account", { method: "POST" });
 }
