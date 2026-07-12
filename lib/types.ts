@@ -12,6 +12,31 @@ export interface UserProfile {
   initials: string;
 }
 
+export type AnalyticsRange = "7" | "30" | "90" | "all";
+
+export interface CategoryBreakdownItem {
+  category: string;
+  amount: number;
+  percentage: number;
+}
+
+export interface CashFlowPoint {
+  date: string;
+  contributions: number;
+  expenses: number;
+}
+
+export interface AnalyticsData {
+  rangeDays: number | null;
+  totalContributions: number;
+  totalExpenses: number;
+  totalWithdrawals: number;
+  net: number;
+  savingsRate: number;
+  categoryBreakdown: CategoryBreakdownItem[];
+  cashFlowSeries: CashFlowPoint[];
+}
+
 /** Status of an individual savings goal / plan line item. */
 export type GoalStatus = "in-progress" | "complete" | "not-started";
 

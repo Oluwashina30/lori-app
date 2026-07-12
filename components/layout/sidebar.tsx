@@ -37,7 +37,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: "dashboard", label: "Dashboard", icon: DashboardGridIcon, href: "/" },
   { id: "messages", label: "Chat", icon: ChatBubbleIcon, href: "/chat" },
   { id: "achievements", label: "Goals", icon: GoalsTrophyIcon, href: "/goals" },
-  { id: "analytics", label: "Analytics", icon: AnalyticsGaugeIcon },
+  { id: "analytics", label: "Analytics", icon: AnalyticsGaugeIcon, href: "/analytics" },
   { id: "ai", label: "AI Insights", icon: BrainIcon, href: "/insights" },
 ];
 

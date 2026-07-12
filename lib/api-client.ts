@@ -5,7 +5,7 @@
  * same-origin fetch sends it automatically, no header wiring needed here.
  */
 
-import type { GoalDetail, InsightRecord, UserSettings } from "./types";
+import type { AnalyticsData, AnalyticsRange, GoalDetail, InsightRecord, UserSettings } from "./types";
 
 async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const res = await fetch(`/api${path}`, {
@@ -114,4 +114,8 @@ export function deleteGoalApi(id: string): Promise<{ ok: boolean }> {
 
 export function contributeToGoalApi(id: string, amount: number): Promise<GoalDetail> {
   return apiFetch<GoalDetail>(`/goals/${id}/contribute`, { method: "POST", body: JSON.stringify({ amount }) });
+}
+
+export function fetchAnalytics(range: AnalyticsRange): Promise<AnalyticsData> {
+  return apiFetch<AnalyticsData>(`/analytics?range=${range}`);
 }
