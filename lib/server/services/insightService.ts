@@ -53,6 +53,15 @@ Give a short (2-4 sentence), specific, encouraging-but-honest answer. Include a 
 }
 
 /**
+ * All insights for a user, newest first — backs the AI Insights history
+ * page (both on-demand SUGGESTION rows from generateInsight and proactive
+ * rows from runAutoSaveAnalysis live in the same table).
+ */
+export function listInsights(userId: string) {
+  return prisma.insight.findMany({ where: { userId }, orderBy: { createdAt: "desc" } });
+}
+
+/**
  * Background job (run nightly, or after N transactions) — this is the
  * "AI auto-save" brain. It looks at spending trends and recommends (or,
  * if the user has opted into full auto-save, executes) a save amount.

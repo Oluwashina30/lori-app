@@ -5,6 +5,8 @@
  * same-origin fetch sends it automatically, no header wiring needed here.
  */
 
+import type { InsightRecord } from "./types";
+
 async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const res = await fetch(`/api${path}`, {
     ...options,
@@ -45,4 +47,21 @@ export function sendChatMessage(message: string): Promise<ChatApiResponse> {
 // dashboardService.ts is written to return exactly this shape.
 export function fetchDashboardDataFromApi<T>(): Promise<T> {
   return apiFetch<T>("/dashboard");
+}
+
+/** Full AI insight history for the current user, newest first. */
+export function fetchInsightHistory(): Promise<{ insights: InsightRecord[] }> {
+  return apiFetch<{ insights: InsightRecord[] }>("/insights");
+}
+
+/** Asks Lori a free-form question and returns the newly generated insight. */
+export function askInsight(query: string): Promise<InsightRecord> {
+  return apiFetch<InsightRecord>("/insights", {
+    method: "POST",
+    body: JSON.stringify({ query }),
+  });
+}
+
+export function dismissInsight(id: string): Promise<{ ok: boolean }> {
+  return apiFetch<{ ok: boolean }>(`/insights/${id}/dismiss`, { method: "POST" });
 }

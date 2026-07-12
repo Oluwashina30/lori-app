@@ -59,6 +59,28 @@ export interface AIInsight {
   message: string;
 }
 
+export type InsightRecordType =
+  | "SPENDING_PATTERN"
+  | "FORECAST"
+  | "ANOMALY"
+  | "SUGGESTION"
+  | "AUTO_SAVE_RECOMMENDATION";
+
+/**
+ * A single persisted AI insight — either asked for directly (always
+ * SUGGESTION, via the ask box on the AI Insights page) or generated
+ * proactively by the auto-save background job. Backs the AI Insights
+ * history feed, one row per past "search"/conversation turn.
+ */
+export interface InsightRecord {
+  id: string;
+  type: InsightRecordType;
+  title: string;
+  content: string;
+  createdAt: string;
+  dismissed: boolean;
+}
+
 export interface ChatSuggestion {
   id: string;
   label: string;

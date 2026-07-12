@@ -38,7 +38,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: "messages", label: "Chat", icon: ChatBubbleIcon, href: "/chat" },
   { id: "achievements", label: "Goals", icon: GoalsTrophyIcon },
   { id: "analytics", label: "Analytics", icon: AnalyticsGaugeIcon },
-  { id: "ai", label: "AI Insights", icon: BrainIcon },
+  { id: "ai", label: "AI Insights", icon: BrainIcon, href: "/insights" },
 ];
 
 const SETTINGS_ITEM: NavItem = { id: "settings", label: "Settings", icon: SettingsGearIcon };
