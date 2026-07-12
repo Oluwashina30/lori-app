@@ -57,11 +57,7 @@ export function DashboardShell({ data }: DashboardShellProps) {
           <RecentActivitiesCard activities={data.activities} />
         </div>
 
-        <AIInsightCard
-          insight={data.aiInsight}
-          onApply={() => console.log("apply recommendations")}
-          className="md:col-span-2 lg:col-span-1"
-        />
+        <AIInsightCard insight={data.aiInsight} className="md:col-span-2 lg:col-span-1" />
       </div>
     </AppShell>
   );

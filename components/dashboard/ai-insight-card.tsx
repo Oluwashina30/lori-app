@@ -2,17 +2,15 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import { Card, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { WandIcon } from "@/components/icons";
 import type { AIInsight } from "@/lib/types";
 
 export interface AIInsightCardProps {
   insight: AIInsight;
-  onApply?: () => void;
   className?: string;
 }
 
-export function AIInsightCard({ insight, onApply, className }: AIInsightCardProps) {
+export function AIInsightCard({ insight, className }: AIInsightCardProps) {
   const reduceMotion = useReducedMotion();
 
   return (
@@ -24,7 +22,7 @@ export function AIInsightCard({ insight, onApply, className }: AIInsightCardProp
     >
       <Card highlighted className="flex h-full flex-col">
         <div className="flex items-center justify-between">
-          <CardTitle>AI Insight</CardTitle>
+          <CardTitle>Lori&apos;s Insight</CardTitle>
           <motion.div
             animate={
               reduceMotion
@@ -46,15 +44,6 @@ export function AIInsightCard({ insight, onApply, className }: AIInsightCardProp
           <p className="text-[13px] font-medium text-foreground">{insight.title}</p>
           <p className="mt-2 text-[14px] leading-relaxed text-muted">{insight.message}</p>
         </motion.div>
-
-        <Button
-          variant="white"
-          size="lg"
-          onClick={onApply}
-          className="mt-auto font-semibold transition-transform duration-200 hover:scale-[1.015]"
-        >
-          Apply Recommendations
-        </Button>
       </Card>
     </motion.div>
   );
