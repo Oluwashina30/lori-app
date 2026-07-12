@@ -10,6 +10,7 @@ import type { SavingsPlanItem } from "@/lib/types";
 
 export interface SavingsPlanCardProps {
   items: SavingsPlanItem[];
+  currency: string;
   className?: string;
 }
 
@@ -28,16 +29,14 @@ const ICONS = {
   sparkles: Sparkles,
 } as const;
 
-function statusLabel(item: SavingsPlanItem): string {
+function statusLabel(item: SavingsPlanItem, currency: string): string {
   if (item.status === "complete") {
-    return `Complete (${formatCurrency(item.targetAmount)})`;
+    return `Complete (${formatCurrency(item.targetAmount, currency)})`;
   }
   if (item.status === "not-started") {
     return "Not Started";
   }
-  return `$ ${item.currentAmount.toLocaleString("en-US")}/${item.targetAmount.toLocaleString(
-    "en-US"
-  )} target`;
+  return `${formatCurrency(item.currentAmount, currency)}/${formatCurrency(item.targetAmount, currency)} target`;
 }
 
 const listVariants = {
@@ -52,7 +51,7 @@ const itemVariants = {
   show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] as const } },
 };
 
-export function SavingsPlanCard({ items, className }: SavingsPlanCardProps) {
+export function SavingsPlanCard({ items, currency, className }: SavingsPlanCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -90,7 +89,7 @@ export function SavingsPlanCard({ items, className }: SavingsPlanCardProps) {
                       item.status === "not-started" ? "text-muted-dim" : "text-muted"
                     }
                   >
-                    {statusLabel(item)}
+                    {statusLabel(item, currency)}
                   </span>
                 </div>
                 <SegmentedProgressBar percentage={percentage} className="mt-3" />

@@ -208,7 +208,7 @@ Write exactly one short sentence (max ~20 words) for a plan-reveal screen: if co
   const monthlyIncome =
     answers.incomeBracket && answers.incomeBracket !== "skip" ? INCOME_BRACKET_MIDPOINT[answers.incomeBracket] : undefined;
 
-  await prisma.user.update({
+  const updatedUser = await prisma.user.update({
     where: { id: userId },
     data: {
       onboardingCompletedAt: new Date(),
@@ -226,6 +226,7 @@ Write exactly one short sentence (max ~20 words) for a plan-reveal screen: if co
   });
 
   return {
+    currency: updatedUser.currency,
     goal: {
       name: goalDraft.name,
       category: goalDraft.category,

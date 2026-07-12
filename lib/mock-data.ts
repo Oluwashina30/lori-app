@@ -21,6 +21,7 @@ export const mockDashboardData: DashboardData = {
     name: "Oluwashina",
     initials: "OS",
   },
+  currency: "NGN",
   greetingSubtitle: "Your finances are looking healthy this month",
   recommendation: {
     message:

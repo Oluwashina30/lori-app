@@ -6,15 +6,36 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-/** Format a number as a whole-dollar currency string, e.g. 20000 -> "$20,000". */
-export function formatCurrency(value: number, currency: "$" | "\u20a6" = "$"): string {
-  return `${currency}${Math.round(value).toLocaleString("en-US")}`;
+/**
+ * The single source of truth mapping a stored currency code (User.currency,
+ * always a 3-letter ISO-ish code like "NGN") to the symbol shown in the UI.
+ * Also drives the Settings currency picker's chip labels, so the two never
+ * drift out of sync.
+ */
+export const CURRENCY_SYMBOLS: Record<string, string> = {
+  USD: "$",
+  NGN: "\u20a6",
+  GBP: "\u00a3",
+  EUR: "\u20ac",
+  GHS: "\u20b5",
+  KES: "KSh",
+  ZAR: "R",
+  CAD: "$",
+  AUD: "$",
+  INR: "\u20b9",
+};
+
+/** Format a number as a whole-unit currency string, e.g. (20000, "NGN") -> "\u20a620,000". */
+export function formatCurrency(value: number, currency: string = "USD"): string {
+  const symbol = CURRENCY_SYMBOLS[currency] ?? currency;
+  return `${symbol}${Math.round(value).toLocaleString("en-US")}`;
 }
 
-/** Format a signed currency delta, e.g. 2230 -> "+$2,230" / -20 -> "-$20". */
-export function formatSignedCurrency(value: number, currency: "$" | "\u20a6" = "$"): string {
+/** Format a signed currency delta, e.g. (2230, "NGN") -> "+\u20a62,230" / (-20, "NGN") -> "-\u20a620". */
+export function formatSignedCurrency(value: number, currency: string = "USD"): string {
+  const symbol = CURRENCY_SYMBOLS[currency] ?? currency;
   const sign = value < 0 ? "-" : "+";
-  return `${sign}${currency}${Math.abs(Math.round(value)).toLocaleString("en-US")}`;
+  return `${sign}${symbol}${Math.abs(Math.round(value)).toLocaleString("en-US")}`;
 }
 
 /** Time-of-day aware greeting, e.g. "Good evening". */

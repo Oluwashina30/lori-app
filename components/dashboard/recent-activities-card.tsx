@@ -8,6 +8,7 @@ import type { ActivityItem } from "@/lib/types";
 
 export interface RecentActivitiesCardProps {
   activities: ActivityItem[];
+  currency: string;
   className?: string;
 }
 
@@ -47,7 +48,7 @@ const itemVariants = {
   show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] as const } },
 };
 
-export function RecentActivitiesCard({ activities, className }: RecentActivitiesCardProps) {
+export function RecentActivitiesCard({ activities, currency, className }: RecentActivitiesCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -84,7 +85,7 @@ export function RecentActivitiesCard({ activities, className }: RecentActivities
                     : "text-[15px] font-medium text-negative"
                 }
               >
-                {formatSignedCurrency(activity.type === "income" ? activity.amount : -activity.amount)}
+                {formatSignedCurrency(activity.type === "income" ? activity.amount : -activity.amount, currency)}
               </span>
             </motion.li>
           ))}

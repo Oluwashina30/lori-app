@@ -92,6 +92,7 @@ export async function getDashboardData(userId: string) {
         .toUpperCase()
         .slice(0, 2),
     },
+    currency: user.currency,
     greetingSubtitle: latestInsight?.title ?? "Here's where your money stands today",
     recommendation: {
       // NOTE: recommendation.message expects a single actionable line — this

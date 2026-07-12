@@ -9,10 +9,11 @@ import type { CashFlowSummary } from "@/lib/types";
 
 export interface CashFlowCardProps {
   data: CashFlowSummary;
+  currency: string;
   className?: string;
 }
 
-export function CashFlowCard({ data, className }: CashFlowCardProps) {
+export function CashFlowCard({ data, currency, className }: CashFlowCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -32,7 +33,7 @@ export function CashFlowCard({ data, className }: CashFlowCardProps) {
               </span>
               <AnimatedNumber
                 value={data.savings}
-                formatter={(v) => formatCurrency(v)}
+                formatter={(v) => formatCurrency(v, currency)}
                 duration={1}
                 className="mt-1 block text-[20px] font-semibold text-foreground"
               />
@@ -44,7 +45,7 @@ export function CashFlowCard({ data, className }: CashFlowCardProps) {
               </span>
               <AnimatedNumber
                 value={data.expenses}
-                formatter={(v) => formatCurrency(v)}
+                formatter={(v) => formatCurrency(v, currency)}
                 duration={1}
                 className="mt-1 block text-[20px] font-semibold text-foreground"
               />

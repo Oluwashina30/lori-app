@@ -13,19 +13,15 @@ import { useLogout } from "@/components/layout/sidebar";
 import { SettingsGearIcon } from "@/components/icons/sidebar-icons";
 import { updateUserSettings, deleteAccount } from "@/lib/api-client";
 import { createClient } from "@/lib/supabase/client";
+import { CURRENCY_SYMBOLS } from "@/lib/utils";
 import type { RiskTolerance, UserProfile, UserSettings } from "@/lib/types";
 
-const CURRENCY_OPTIONS: { code: string; label: string }[] = [
-  { code: "USD", label: "$ USD" },
-  { code: "NGN", label: "₦ NGN" },
-  { code: "GBP", label: "£ GBP" },
-  { code: "EUR", label: "€ EUR" },
-  { code: "GHS", label: "₵ GHS" },
-  { code: "KES", label: "KSh KES" },
-  { code: "ZAR", label: "R ZAR" },
-  { code: "CAD", label: "$ CAD" },
-  { code: "INR", label: "₹ INR" },
-];
+// Derived from the same CURRENCY_SYMBOLS map that formatCurrency/
+// formatSignedCurrency use everywhere amounts are displayed, so the
+// picker's labels can never drift out of sync with what actually renders.
+const CURRENCY_OPTIONS: { code: string; label: string }[] = Object.entries(CURRENCY_SYMBOLS).map(
+  ([code, symbol]) => ({ code, label: `${symbol} ${code}` })
+);
 
 const RISK_OPTIONS: { value: RiskTolerance; label: string; hint: string }[] = [
   { value: "conservative", label: "Conservative", hint: "Smaller, steadier auto-save suggestions" },

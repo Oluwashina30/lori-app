@@ -11,9 +11,10 @@ import type { SavingsSummary } from "@/lib/types";
 
 export interface TotalSavingsCardProps {
   summary: SavingsSummary;
+  currency: string;
 }
 
-export function TotalSavingsCard({ summary }: TotalSavingsCardProps) {
+export function TotalSavingsCard({ summary, currency }: TotalSavingsCardProps) {
   const {
     total,
     changeAmount,
@@ -37,7 +38,7 @@ export function TotalSavingsCard({ summary }: TotalSavingsCardProps) {
         <div className="mt-2 flex flex-wrap items-baseline gap-3">
           <AnimatedNumber
             value={total}
-            formatter={(v) => formatCurrency(v)}
+            formatter={(v) => formatCurrency(v, currency)}
             className="text-[32px] font-semibold leading-none tracking-tight text-foreground sm:text-[40px]"
           />
           <motion.span
@@ -47,7 +48,7 @@ export function TotalSavingsCard({ summary }: TotalSavingsCardProps) {
             className="flex items-center gap-1 text-[15px] font-medium text-positive"
           >
             <TrendingUpIcon className="h-4 w-4" />
-            {formatCurrency(changeAmount)} ({changePercentage}%)
+            {formatCurrency(changeAmount, currency)} ({changePercentage}%)
           </motion.span>
           <motion.span
             initial={{ opacity: 0 }}
@@ -64,7 +65,7 @@ export function TotalSavingsCard({ summary }: TotalSavingsCardProps) {
             {goalPercentComplete}% complete &middot; {goalLabel}
           </span>
           <span className="text-muted">
-            {formatCurrency(goalCurrent)} / {formatCurrency(goalTarget)}
+            {formatCurrency(goalCurrent, currency)} / {formatCurrency(goalTarget, currency)}
           </span>
         </div>
 

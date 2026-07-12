@@ -59,9 +59,9 @@ export function PlanRevealScreen({ plan, onContinue }: PlanRevealScreenProps) {
         <dl className="flex flex-col gap-4">
           <Row label="Goal" value={plan.goal.name} />
           <Row label="Category" value={CATEGORY_LABEL[plan.goal.category] ?? plan.goal.category} />
-          <Row label="Target" value={formatCurrency(plan.goal.targetAmount)} />
+          <Row label="Target" value={formatCurrency(plan.goal.targetAmount, plan.currency)} />
           <Row label="Timeline" value={formatTimeline(plan.goal.deadline)} />
-          <Row label="Weekly Contribution" value={formatCurrency(plan.goal.recommendedContribution)} />
+          <Row label="Weekly Contribution" value={formatCurrency(plan.goal.recommendedContribution, plan.currency)} />
           <Row
             label="Confidence"
             value={plan.confidenceLabel}

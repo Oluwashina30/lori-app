@@ -40,7 +40,7 @@ export function DashboardShell({ data }: DashboardShellProps) {
     <AppShell user={data.user}>
       <GreetingSection name={data.user.name} subtitle={data.greetingSubtitle} />
 
-      <TotalSavingsCard summary={data.savingsSummary} />
+      <TotalSavingsCard summary={data.savingsSummary} currency={data.currency} />
 
       <AIRecommendationBanner message={data.recommendation.message} />
 
@@ -50,11 +50,11 @@ export function DashboardShell({ data }: DashboardShellProps) {
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <SavingsPlanCard items={data.savingsPlan} className="md:col-span-1" />
+        <SavingsPlanCard items={data.savingsPlan} currency={data.currency} className="md:col-span-1" />
 
         <div className="flex flex-col gap-6 md:col-span-1">
-          <CashFlowCard data={data.cashFlow} />
-          <RecentActivitiesCard activities={data.activities} />
+          <CashFlowCard data={data.cashFlow} currency={data.currency} />
+          <RecentActivitiesCard activities={data.activities} currency={data.currency} />
         </div>
 
         <AIInsightCard insight={data.aiInsight} className="md:col-span-2 lg:col-span-1" />

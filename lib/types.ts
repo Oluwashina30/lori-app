@@ -133,6 +133,8 @@ export interface RecommendationBanner {
 
 export interface DashboardData {
   user: UserProfile;
+  /** ISO-ish currency code from User.currency (e.g. "NGN"), IP-detected at signup, editable from Settings. */
+  currency: string;
   greetingSubtitle: string;
   recommendation: RecommendationBanner;
   chatSuggestions: ChatSuggestion[];
@@ -188,6 +190,8 @@ export interface OnboardingState {
 }
 
 export interface OnboardingPlan {
+  /** ISO-ish currency code from User.currency, set at signup from the visitor's IP. */
+  currency: string;
   goal: {
     name: string;
     category: GoalCategory;
