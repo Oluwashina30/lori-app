@@ -32,12 +32,12 @@ export function SynthesisScreen() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-        className="ai-glow-border-sm flex w-full items-center gap-3 rounded-2xl border border-transparent bg-surface px-7 py-6 [background:linear-gradient(var(--surface),var(--surface))_padding-box,linear-gradient(120deg,var(--accent-from),var(--accent-to))_border-box]"
+        className="ai-glow-border-sm flex w-full items-center justify-center gap-3 rounded-full border border-transparent bg-surface px-8 py-5 text-center [background:linear-gradient(var(--surface),var(--surface))_padding-box,linear-gradient(120deg,var(--accent-from),var(--accent-to))_border-box]"
       >
         <span className="text-xl" aria-hidden>
           💡
         </span>
-        <div className="text-left">
+        <div className="text-center">
           <p className="text-[17px] font-semibold text-foreground">Building your personalized plan</p>
           <AnimatePresence mode="wait">
             <motion.p

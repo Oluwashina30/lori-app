@@ -69,7 +69,7 @@ export function PlanRevealScreen({ plan, onContinue }: PlanRevealScreenProps) {
           />
         </dl>
 
-        <div className="mt-6 flex items-start gap-3 border-t border-border-subtle pt-5">
+        <div className="mt-6 flex items-center gap-3 rounded-2xl border border-border-subtle bg-surface-elevated px-5 py-4">
           <Lightbulb className="h-[18px] w-[18px] shrink-0 text-accent-solid" strokeWidth={2} />
           <p className="text-[14px] text-foreground/90">{plan.challengeText}</p>
         </div>
