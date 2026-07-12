@@ -81,6 +81,30 @@ export async function updateSession(request: NextRequest) {
 
   if (user) {
     request.headers.set("x-supabase-user-id", user.id);
+
+    // Onboarding-complete gate: read off Supabase user_metadata rather than
+    // querying Postgres here — this function only ever talks to Supabase
+    // Auth, never Prisma, which keeps it safe to run in any middleware
+    // runtime. /api/onboarding/complete stamps this flag (and the Postgres
+    // column that's its source of truth) once onboarding finishes. API
+    // routes are exempt — they're called *from* the onboarding page itself
+    // and have their own auth checks; redirecting them would return HTML
+    // where the client expects JSON.
+    const onboardingCompleted = user.user_metadata?.onboarding_completed === true;
+    const isApiRoute = pathname.startsWith("/api/");
+    const isOnboardingRoute = pathname === "/onboarding" || pathname.startsWith("/onboarding/");
+
+    if (!onboardingCompleted && !isApiRoute && !isOnboardingRoute && !isPublic) {
+      const redirectResponse = NextResponse.redirect(new URL("/onboarding", request.nextUrl));
+      pendingCookies.forEach(({ name, value, options }) => redirectResponse.cookies.set(name, value, options));
+      return redirectResponse;
+    }
+
+    if (onboardingCompleted && isOnboardingRoute) {
+      const redirectResponse = NextResponse.redirect(new URL("/", request.nextUrl));
+      pendingCookies.forEach(({ name, value, options }) => redirectResponse.cookies.set(name, value, options));
+      return redirectResponse;
+    }
   }
 
   const response = NextResponse.next({ request });

@@ -36,33 +36,38 @@ enum InsightType {
 }
 
 model User {
-  id            String    @id @default(uuid())
-  name          String
-  email         String    @unique
-  currency      String    @default("NGN")
-  monthlyIncome Decimal?  @db.Decimal(14, 2)
-  riskTolerance String    @default("moderate") // conservative | moderate | aggressive — informs AI auto-save sizing
-  createdAt     DateTime  @default(now())
+  id                    String    @id @default(uuid())
+  name                  String
+  email                 String    @unique
+  currency              String    @default("NGN")
+  monthlyIncome         Decimal?  @db.Decimal(14, 2)
+  riskTolerance         String    @default("moderate") // conservative | moderate | aggressive — informs AI auto-save sizing
+  incomeBracket         String?   // raw onboarding selection, e.g. "500_2000" — monthlyIncome is derived from this at completion, kept separately so it's re-editable without losing precision-of-selection
+  onboardingCompletedAt DateTime? // null = still needs onboarding; also the source of truth mirrored into Supabase user_metadata for the middleware redirect gate (see lib/supabase/middleware.ts)
+  createdAt             DateTime  @default(now())
 
-  goals        Goal[]
-  transactions Transaction[]
-  insights     Insight[]
-  chatMessages ChatMessage[]
+  goals             Goal[]
+  transactions      Transaction[]
+  insights          Insight[]
+  chatMessages      ChatMessage[]
+  onboardingSession OnboardingSession?
 }
 
 model Goal {
-  id            String     @id @default(uuid())
-  userId        String
-  user          User       @relation(fields: [userId], references: [id])
-  name          String
-  targetAmount  Decimal    @db.Decimal(14, 2)
-  currentAmount Decimal    @default(0) @db.Decimal(14, 2)
-  deadline      DateTime?
-  status        GoalStatus @default(ACTIVE)
-  createdByAI   Boolean    @default(false)
-  category      String?    // e.g. "emergency_fund", "travel", "gadget"
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  id                      String     @id @default(uuid())
+  userId                  String
+  user                    User       @relation(fields: [userId], references: [id])
+  name                    String
+  targetAmount            Decimal    @db.Decimal(14, 2)
+  currentAmount           Decimal    @default(0) @db.Decimal(14, 2)
+  deadline                DateTime?
+  status                  GoalStatus @default(ACTIVE)
+  createdByAI             Boolean    @default(false)
+  category                String?    // e.g. "emergency_fund", "travel", "gadget"
+  recommendedContribution Decimal?   @db.Decimal(14, 2) // weekly amount, computed deterministically at creation (see onboardingService.ts)
+  confidenceScore         Float?     // 0-1, achievability given target/timeline vs. income bracket — not LLM-computed, see onboardingService.ts
+  createdAt               DateTime   @default(now())
+  updatedAt               DateTime   @updatedAt
 
   transactions Transaction[]
   insights     Insight[]
@@ -115,4 +120,20 @@ model ChatMessage {
   createdAt     DateTime @default(now())
 
   @@index([userId, createdAt])
+}
+
+// One row per user (upserted, not historical) — exists purely so a page
+// refresh mid-onboarding doesn't lose progress. goalDraft accumulates
+// capture_goal tool output; answers holds raw UI selections (goal type
+// card, timeline choice, income bracket) that aren't part of the AI draft.
+model OnboardingSession {
+  id          String    @id @default(uuid())
+  userId      String    @unique
+  user        User      @relation(fields: [userId], references: [id])
+  step        String    @default("goal_capture")
+  goalDraft   Json?
+  answers     Json?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }

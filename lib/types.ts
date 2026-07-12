@@ -16,7 +16,15 @@ export interface UserProfile {
 export type GoalStatus = "in-progress" | "complete" | "not-started";
 
 /** Supported icon keys for savings plan rows. Mapped to lucide icons in the UI layer. */
-export type SavingsPlanIcon = "car" | "home" | "plane" | "heart-pulse";
+export type SavingsPlanIcon =
+  | "car"
+  | "home"
+  | "plane"
+  | "heart-pulse"
+  | "graduation-cap"
+  | "heart"
+  | "briefcase"
+  | "sparkles";
 
 export interface SavingsPlanItem {
   id: string;
@@ -102,3 +110,57 @@ export interface DashboardData {
 
 /** Currency used across all monetary formatting. Centralised so it can be made a user preference later. */
 export const DEFAULT_CURRENCY = "USD";
+
+export type GoalCategory =
+  | "home"
+  | "car"
+  | "travel"
+  | "education"
+  | "wedding"
+  | "business"
+  | "emergency_fund"
+  | "other";
+
+/** Evolving AI-extracted goal object, accumulated across the onboarding flow. */
+export interface OnboardingGoalDraft {
+  name?: string;
+  category?: GoalCategory;
+  targetAmount?: number;
+  deadline?: string; // ISO date
+  confidence?: "high" | "medium" | "low";
+  summary?: string;
+}
+
+export interface OnboardingAnswers {
+  incomeBracket?: string; // bracket key, or "skip"
+  emergencyMonthlyExpenses?: number;
+  emergencyCurrentSavings?: number;
+  emergencyBufferMonths?: number;
+}
+
+export type OnboardingStep =
+  | "goal_capture"
+  | "follow_up_amount"
+  | "follow_up_timeline"
+  | "emergency_fund"
+  | "income"
+  | "ready_to_complete";
+
+export interface OnboardingState {
+  step: OnboardingStep;
+  goalDraft: OnboardingGoalDraft;
+  answers: OnboardingAnswers;
+}
+
+export interface OnboardingPlan {
+  goal: {
+    name: string;
+    category: GoalCategory;
+    targetAmount: number;
+    deadline: string | null;
+    recommendedContribution: number;
+    confidenceScore: number;
+  };
+  confidenceLabel: "High" | "Medium" | "Low";
+  challengeText: string;
+}

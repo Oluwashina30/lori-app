@@ -2,12 +2,24 @@ import { prisma } from "../../prisma";
 
 // Maps a goal's free-text category (see prisma/schema.prisma Goal.category)
 // to one of the icon keys the frontend's SavingsPlanIcon type supports.
-// Extend both sides together as the icon set grows.
+// Extend both sides together as the icon set grows. Covers two category
+// vocabularies that both write to this same free-text column: the chat
+// create_goal tool (lib/server/ai/tools.ts — housing/vehicle/gadget/event)
+// and onboarding's capture_goal tool (lib/server/ai/tools.ts — home/car/
+// wedding/business, matching the onboarding card labels).
 const GOAL_ICON_MAP: Record<string, string> = {
   vehicle: "car",
+  car: "car",
   housing: "home",
+  home: "home",
   travel: "plane",
   emergency_fund: "heart-pulse",
+  education: "graduation-cap",
+  wedding: "heart",
+  business: "briefcase",
+  gadget: "sparkles",
+  event: "sparkles",
+  other: "sparkles",
 };
 
 const TXN_ICON_MAP: Record<string, string> = {
@@ -112,7 +124,7 @@ export async function getDashboardData(userId: string) {
     savingsPlan: goals.map((g) => ({
       id: g.id,
       label: g.name,
-      icon: GOAL_ICON_MAP[g.category ?? ""] ?? "heart-pulse",
+      icon: GOAL_ICON_MAP[g.category ?? ""] ?? "sparkles",
       currentAmount: Number(g.currentAmount),
       targetAmount: Number(g.targetAmount),
       status: goalStatus(Number(g.currentAmount), Number(g.targetAmount)),

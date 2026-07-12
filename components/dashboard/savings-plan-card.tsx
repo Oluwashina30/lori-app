@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { GraduationCap, Heart, Briefcase, Sparkles } from "lucide-react";
 import { Card, CardTitle } from "@/components/ui/card";
 import { SegmentedProgressBar } from "@/components/ui/segmented-progress-bar";
 import { CarIcon, HouseIcon, PlaneIcon, HeartPulseIcon } from "@/components/icons";
@@ -12,11 +13,19 @@ export interface SavingsPlanCardProps {
   className?: string;
 }
 
+// car/home/plane/heart-pulse are custom SVGs sourced from the design's
+// Figma export (see components/icons); the 4 added for onboarding's extra
+// goal categories have no exported asset, so they use lucide-react —
+// already a dependency, already used the same way for TotalSavingsCard's bulb.
 const ICONS = {
   car: CarIcon,
   home: HouseIcon,
   plane: PlaneIcon,
   "heart-pulse": HeartPulseIcon,
+  "graduation-cap": GraduationCap,
+  heart: Heart,
+  briefcase: Briefcase,
+  sparkles: Sparkles,
 } as const;
 
 function statusLabel(item: SavingsPlanItem): string {

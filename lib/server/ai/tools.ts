@@ -93,3 +93,43 @@ export const AI_TOOLS = [
 ] as const;
 
 export type AiToolName = (typeof AI_TOOLS)[number]["name"];
+
+// Used only during onboarding (lib/server/ai/onboardingParser.ts), not part
+// of AI_TOOLS/parseIntent's chat pipeline — kept separate since it's always
+// force-called with a single tool, never chosen among several.
+export const CAPTURE_GOAL_TOOL = {
+  name: "capture_goal",
+  description:
+    "Extract a structured savings goal from the user's own description during onboarding. " +
+    "Omit targetAmount or deadline entirely if they weren't stated or can't be confidently inferred — " +
+    "do not guess a number just to fill the field. The app will ask a follow-up question for whatever's missing.",
+  input_schema: {
+    type: "object",
+    properties: {
+      name: { type: "string", description: "Short goal name, e.g. 'Japan Trip'" },
+      category: {
+        type: "string",
+        enum: ["home", "car", "travel", "education", "wedding", "business", "emergency_fund", "other"],
+      },
+      targetAmount: {
+        type: "number",
+        description: "Only include if the user stated an amount or gave enough detail to estimate one confidently",
+      },
+      deadline: {
+        type: "string",
+        format: "date",
+        description: "ISO date, only include if a timeframe was stated or clearly implied (e.g. 'next spring')",
+      },
+      confidence: {
+        type: "string",
+        enum: ["high", "medium", "low"],
+        description: "Your overall confidence in this extraction as a whole — for display only, not used for branching logic",
+      },
+      summary: {
+        type: "string",
+        description: "One short sentence confirming what you understood, in second person, e.g. \"A trip to Japan, roughly ₦2.5m.\"",
+      },
+    },
+    required: ["name", "category", "confidence", "summary"],
+  },
+} as const;
