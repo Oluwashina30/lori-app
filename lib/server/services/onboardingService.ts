@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { captureGoal } from "@/lib/server/ai/onboardingParser";
 import * as goalService from "@/lib/server/services/goalService";
 import { incomeBracketMidpoint } from "@/lib/income-brackets";
+import { formatCurrency } from "@/lib/utils";
 import type {
   OnboardingAnswers,
   OnboardingGoalDraft,
@@ -166,11 +167,11 @@ export async function completeOnboarding(userId: string): Promise<OnboardingPlan
     data: { recommendedContribution, confidenceScore },
   });
 
-  const narrativePrompt = `A new user just set up this savings goal: "${goalDraft.name}" (${goalDraft.category}), target ${goalDraft.targetAmount}${
+  const narrativePrompt = `A new user just set up this savings goal: "${goalDraft.name}" (${goalDraft.category}), target ${formatCurrency(goalDraft.targetAmount, currency)}${
     goalDraft.deadline ? `, by ${goalDraft.deadline}` : ""
-  }. Recommended weekly contribution: ${recommendedContribution.toFixed(2)}. Affordability confidence: ${confidenceLabel}.
+  }. Recommended weekly contribution: ${formatCurrency(recommendedContribution, currency)}. Affordability confidence: ${confidenceLabel}.
 
-Write exactly one short sentence (max ~20 words) for a plan-reveal screen: if confidence is Low, name the specific realistic challenge (be concrete, not generic); if Medium or High, a brief encouraging affirmation. No preamble, just the sentence.`;
+Write exactly one short sentence (max ~20 words) for a plan-reveal screen: if confidence is Low, name the specific realistic challenge (be concrete, not generic); if Medium or High, a brief encouraging affirmation. No preamble, just the sentence. The user's currency is ${currency} — always write amounts using the exact currency symbol shown above (e.g. "${formatCurrency(1000, currency)}"), never a different currency symbol.`;
 
   const response = await anthropic.messages.create({
     model: "claude-sonnet-4-6",

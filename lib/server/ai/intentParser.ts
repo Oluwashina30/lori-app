@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { AI_TOOLS, AiToolName } from "./tools";
+import { formatCurrency } from "@/lib/utils";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -31,13 +32,14 @@ export async function parseIntent(
   context: UserContext,
   history: { role: "user" | "assistant"; content: string }[] = []
 ): Promise<ParsedIntent> {
+  const fmt = (v: number) => formatCurrency(v, context.currency);
   const systemPrompt = `You are the intent-parsing layer of an AI savings app. Your job: read the user's message, decide which single tool applies, and call it with accurate extracted data.
 
-Currency: ${context.currency}
+User's currency: ${context.currency}
 User's active goals: ${
     context.activeGoals.length
       ? context.activeGoals
-          .map((g) => `"${g.name}" (${g.currentAmount}/${g.targetAmount})`)
+          .map((g) => `"${g.name}" (${fmt(g.currentAmount)}/${fmt(g.targetAmount)})`)
           .join(", ")
       : "none yet"
   }
@@ -46,7 +48,8 @@ ${context.recentSpendSummary ? `Recent spending: ${context.recentSpendSummary}` 
 Rules:
 - Always call exactly one tool. If nothing financial is happening, call chit_chat.
 - For add_contribution and request_insight, use goalNameHint to loosely match one of the active goals above — don't invent a goal name that isn't close to an existing one.
-- Numbers: strip currency symbols/commas, return plain numbers.
+- Numbers passed to tools: strip currency symbols/commas, return plain numbers.
+- In your natural-language reply text, always write money amounts using the exact currency symbol shown above (e.g. "${fmt(1000)}"), never a different currency's symbol.
 - Be conservative about create_goal — only create a NEW goal if the user is clearly describing something not already in their active goals list.`;
 
   const response = await anthropic.messages.create({
@@ -80,20 +83,21 @@ Rules:
   return {
     tool: toolUse.name as AiToolName,
     input: toolUse.input as Record<string, any>,
-    assistantReply: textBlock?.text ?? generateFallbackReply(toolUse.name as AiToolName, toolUse.input),
+    assistantReply:
+      textBlock?.text ?? generateFallbackReply(toolUse.name as AiToolName, toolUse.input, context.currency),
   };
 }
 
 // If Claude doesn't emit accompanying text (common when tool_choice forces a call),
 // generate a serviceable reply from the structured data so the chat never feels empty.
-function generateFallbackReply(tool: AiToolName, input: any): string {
+function generateFallbackReply(tool: AiToolName, input: any, currency: string): string {
   switch (tool) {
     case "create_goal":
-      return `Created a new goal: "${input.name}" — target ${input.targetAmount}.`;
+      return `Created a new goal: "${input.name}" — target ${formatCurrency(input.targetAmount, currency)}.`;
     case "add_contribution":
-      return `Added ${input.amount} toward "${input.goalNameHint}".`;
+      return `Added ${formatCurrency(input.amount, currency)} toward "${input.goalNameHint}".`;
     case "log_expense":
-      return `Logged ${input.amount} under ${input.category}.`;
+      return `Logged ${formatCurrency(input.amount, currency)} under ${input.category}.`;
     case "request_insight":
       return `Let me pull that up.`;
     default:
