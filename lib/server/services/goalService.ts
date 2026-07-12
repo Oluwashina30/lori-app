@@ -1,5 +1,11 @@
-import { Goal } from "@prisma/client";
+import { Goal, GoalStatus } from "@prisma/client";
 import { prisma } from "../../prisma";
+
+async function assertOwnedGoal(userId: string, goalId: string): Promise<Goal> {
+  const goal = await prisma.goal.findFirst({ where: { id: goalId, userId } });
+  if (!goal) throw new Error("Goal not found");
+  return goal;
+}
 
 export async function createGoal(userId: string, data: {
   name: string;
@@ -58,4 +64,55 @@ export async function addToGoal(goalId: string, amount: number) {
 
 export async function getUserActiveGoals(userId: string) {
   return prisma.goal.findMany({ where: { userId, status: "ACTIVE" } });
+}
+
+/** Every goal regardless of status — backs the full Goals page (vs. the dashboard's ACTIVE-only list). */
+export async function getUserGoals(userId: string) {
+  return prisma.goal.findMany({ where: { userId }, orderBy: [{ status: "asc" }, { createdAt: "desc" }] });
+}
+
+export async function updateGoal(
+  userId: string,
+  goalId: string,
+  data: { name?: string; targetAmount?: number; deadline?: string | null; category?: string }
+) {
+  await assertOwnedGoal(userId, goalId);
+  return prisma.goal.update({
+    where: { id: goalId },
+    data: {
+      name: data.name,
+      targetAmount: data.targetAmount,
+      category: data.category,
+      deadline: data.deadline === undefined ? undefined : data.deadline ? new Date(data.deadline) : null,
+    },
+  });
+}
+
+export async function setGoalStatus(userId: string, goalId: string, status: GoalStatus) {
+  await assertOwnedGoal(userId, goalId);
+  return prisma.goal.update({ where: { id: goalId }, data: { status } });
+}
+
+export async function deleteGoal(userId: string, goalId: string) {
+  await assertOwnedGoal(userId, goalId);
+  // Transaction/Insight rows reference goalId optionally — null it out first
+  // rather than leaving a dangling foreign key (there's no ON DELETE CASCADE
+  // on either relation, so a direct delete would fail once either exists).
+  await prisma.$transaction([
+    prisma.transaction.updateMany({ where: { goalId }, data: { goalId: null } }),
+    prisma.insight.updateMany({ where: { goalId }, data: { goalId: null } }),
+    prisma.goal.delete({ where: { id: goalId } }),
+  ]);
+}
+
+/** Adds a contribution and records the Transaction atomically, for goal-page-driven (not chat-driven) contributions. */
+export async function contributeToGoal(userId: string, goalId: string, amount: number) {
+  await assertOwnedGoal(userId, goalId);
+  const [goal] = await prisma.$transaction([
+    prisma.goal.update({ where: { id: goalId }, data: { currentAmount: { increment: amount } } }),
+    prisma.transaction.create({
+      data: { userId, goalId, type: "CONTRIBUTION", amount, source: "MANUAL" },
+    }),
+  ]);
+  return goal;
 }

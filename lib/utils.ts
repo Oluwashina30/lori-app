@@ -46,6 +46,27 @@ export function getGreeting(date: Date = new Date()): string {
   return "Good evening";
 }
 
+/** Goal-deadline label, e.g. "6 months left", "Due in 3 days", "Overdue by 2 weeks". */
+export function formatDeadline(iso: string, now: Date = new Date()): string {
+  const deadline = new Date(iso);
+  const diffDays = Math.round((deadline.getTime() - now.getTime()) / (24 * 60 * 60 * 1000));
+
+  if (diffDays < 0) {
+    const overdue = Math.abs(diffDays);
+    if (overdue < 14) return `Overdue by ${overdue} day${overdue === 1 ? "" : "s"}`;
+    const weeks = Math.round(overdue / 7);
+    if (weeks < 8) return `Overdue by ${weeks} week${weeks === 1 ? "" : "s"}`;
+    const months = Math.round(overdue / 30);
+    return `Overdue by ${months} month${months === 1 ? "" : "s"}`;
+  }
+  if (diffDays === 0) return "Due today";
+  if (diffDays < 14) return `Due in ${diffDays} day${diffDays === 1 ? "" : "s"}`;
+  if (diffDays < 60) return `${Math.round(diffDays / 7)} weeks left`;
+  if (diffDays < 365) return `${Math.round(diffDays / 30)} months left`;
+  const years = Math.round(diffDays / 365);
+  return `${years} year${years === 1 ? "" : "s"} left`;
+}
+
 /** Coarse relative-time label for history feeds, e.g. "3m ago", "Yesterday", "Jul 8". */
 export function formatRelativeTime(iso: string, now: Date = new Date()): string {
   const date = new Date(iso);

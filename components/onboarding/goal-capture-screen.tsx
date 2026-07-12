@@ -2,23 +2,12 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
-import { GraduationCap, Heart, Briefcase, Plus } from "lucide-react";
-import { CarIcon, HouseIcon, PlaneIcon, HeartPulseIcon, AttachIcon, MicIcon, ImageAttachIcon, SendButtonIcon } from "@/components/icons";
+import { AttachIcon, MicIcon, ImageAttachIcon, SendButtonIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { SelectableCard } from "@/components/onboarding/selectable";
+import { GOAL_CATEGORIES } from "@/lib/goal-categories";
 import { cn } from "@/lib/utils";
 import type { GoalCategory } from "@/lib/types";
-
-const CARDS: { category: GoalCategory; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-  { category: "home", label: "Buy a Home", icon: HouseIcon },
-  { category: "car", label: "Buy a Car", icon: CarIcon },
-  { category: "travel", label: "Travel", icon: PlaneIcon },
-  { category: "education", label: "Education", icon: GraduationCap },
-  { category: "wedding", label: "Wedding", icon: Heart },
-  { category: "business", label: "Start/Grow a Business", icon: Briefcase },
-  { category: "emergency_fund", label: "Emergency", icon: HeartPulseIcon },
-  { category: "other", label: "Something Else", icon: Plus },
-];
 
 export interface GoalCaptureScreenProps {
   userName: string;
@@ -70,7 +59,7 @@ export function GoalCaptureScreen({ userName, onSelectCard, onSubmitMessage, loa
       </motion.p>
 
       <div className="mt-10 grid w-full grid-cols-2 gap-3 sm:grid-cols-4">
-        {CARDS.map((card, i) => (
+        {GOAL_CATEGORIES.map((card, i) => (
           <SelectableCard
             key={card.category}
             icon={card.icon}

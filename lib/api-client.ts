@@ -5,7 +5,7 @@
  * same-origin fetch sends it automatically, no header wiring needed here.
  */
 
-import type { InsightRecord, UserSettings } from "./types";
+import type { GoalDetail, InsightRecord, UserSettings } from "./types";
 
 async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const res = await fetch(`/api${path}`, {
@@ -81,4 +81,37 @@ export function updateUserSettings(
 
 export function deleteAccount(): Promise<{ ok: boolean }> {
   return apiFetch<{ ok: boolean }>("/settings/delete-account", { method: "POST" });
+}
+
+/** Every goal for the current user, regardless of status. */
+export function fetchGoals(): Promise<GoalDetail[]> {
+  return apiFetch<GoalDetail[]>("/goals");
+}
+
+export function createGoalApi(data: {
+  name: string;
+  targetAmount: number;
+  category?: string;
+  deadline?: string | null;
+}): Promise<GoalDetail> {
+  return apiFetch<GoalDetail>("/goals", { method: "POST", body: JSON.stringify(data) });
+}
+
+export function updateGoalApi(
+  id: string,
+  data: Partial<{ name: string; targetAmount: number; category: string; deadline: string | null }>
+): Promise<GoalDetail> {
+  return apiFetch<GoalDetail>(`/goals/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+}
+
+export function setGoalStatusApi(id: string, status: GoalDetail["status"]): Promise<GoalDetail> {
+  return apiFetch<GoalDetail>(`/goals/${id}`, { method: "PATCH", body: JSON.stringify({ status }) });
+}
+
+export function deleteGoalApi(id: string): Promise<{ ok: boolean }> {
+  return apiFetch<{ ok: boolean }>(`/goals/${id}`, { method: "DELETE" });
+}
+
+export function contributeToGoalApi(id: string, amount: number): Promise<GoalDetail> {
+  return apiFetch<GoalDetail>(`/goals/${id}/contribute`, { method: "POST", body: JSON.stringify({ amount }) });
 }

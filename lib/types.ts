@@ -35,6 +35,27 @@ export interface SavingsPlanItem {
   status: GoalStatus;
 }
 
+/** Prisma's persisted Goal.status enum — distinct from the derived display GoalStatus above. */
+export type GoalRecordStatus = "ACTIVE" | "COMPLETED" | "PAUSED" | "ABANDONED";
+
+/**
+ * Full goal record for the dedicated Goals page — a superset of
+ * SavingsPlanItem (which is deliberately dashboard-card-shaped and omits
+ * deadline/category/status/etc).
+ */
+export interface GoalDetail {
+  id: string;
+  name: string;
+  category: string | null;
+  targetAmount: number;
+  currentAmount: number;
+  deadline: string | null;
+  status: GoalRecordStatus;
+  recommendedContribution: number | null;
+  createdByAI: boolean;
+  createdAt: string;
+}
+
 export interface CashFlowSummary {
   savings: number;
   expenses: number;
