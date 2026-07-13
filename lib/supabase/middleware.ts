@@ -25,13 +25,19 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
   const isPublic = isPublicPath(pathname);
+  // "/" renders a public marketing landing page for anonymous visitors
+  // (app/page.tsx branches on getUserId()) but must NOT skip the
+  // onboarding-completion gate below for authenticated users — so this is
+  // deliberately kept separate from isPublic rather than added to
+  // PUBLIC_PATHS, which would also exempt it from that gate.
+  const isAnonymousRoot = pathname === "/";
 
   // Fast path: no Supabase session cookie at all means nothing to validate
   // or refresh — skip the network round trip entirely (the common case for
   // anonymous visitors landing on /login or /signup).
   const hasAuthCookie = request.cookies.getAll().some((c) => c.name.startsWith("sb-"));
   if (!hasAuthCookie) {
-    if (!isPublic) {
+    if (!isPublic && !isAnonymousRoot) {
       const url = request.nextUrl.clone();
       url.pathname = "/login";
       return NextResponse.redirect(url);
@@ -66,7 +72,7 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user && !isPublic) {
+  if (!user && !isPublic && !isAnonymousRoot) {
     const url = request.nextUrl.clone();
     const redirectResponse = NextResponse.redirect(new URL("/login", url));
     pendingCookies.forEach(({ name, value, options }) => redirectResponse.cookies.set(name, value, options));

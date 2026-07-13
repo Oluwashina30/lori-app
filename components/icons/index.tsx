@@ -126,6 +126,21 @@ export function WandIcon(props: IconProps) {
   );
 }
 
+/** Flat, single-color wand — same glyph as WandIcon, but themeable via currentColor instead of the baked-in gradient (e.g. the marketing feature grid's muted icon set). */
+export function WandOutlineIcon(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <path
+        d="M15 4V2M15 16V14M8 9H10M20 9H22M17.8 11.7998L19 12.9998M15 9H15.01M17.8 6.2L19 5M3 21L12 12M12.2 6.2L11 5"
+        stroke="currentColor"
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 /** "Ask AI" button + composer label sparkle (gradient 4-point sparkle cluster). */
 export function SparkleIcon(props: IconProps) {
   const gradId = React.useId();

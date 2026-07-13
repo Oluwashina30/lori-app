@@ -14,6 +14,8 @@ export interface ChatComposerProps {
   label?: string;
   /** Hide the "✨ {label}" row above the field — e.g. once a chat conversation already has messages. Defaults to true. */
   showLabel?: boolean;
+  /** Floor for the textarea's auto-resize height, in px. Defaults to the compact dashboard sizing (64). */
+  minHeight?: number;
 }
 
 export function ChatComposer({
@@ -23,6 +25,7 @@ export function ChatComposer({
   placeholder = "I spent 5000 on food",
   label = "Tell me about today.",
   showLabel = true,
+  minHeight = 64,
 }: ChatComposerProps) {
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
@@ -69,7 +72,8 @@ export function ChatComposer({
           }}
           placeholder={`\u201c ${placeholder} \u201d`}
           aria-label="Describe today's financial activity"
-          className="min-h-[64px] w-full resize-none bg-transparent text-[15px] text-foreground placeholder:italic placeholder:text-muted-dim focus:outline-none"
+          style={{ minHeight }}
+          className="w-full resize-none bg-transparent text-[15px] text-foreground placeholder:italic placeholder:text-muted-dim focus:outline-none"
         />
 
         <div className="flex items-center justify-end gap-1.5 pt-3">
