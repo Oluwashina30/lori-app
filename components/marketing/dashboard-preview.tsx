@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion, useAnimationControls, useScroll, useTransform } from "framer-motion";
 import { Logo } from "@/components/layout/logo";
 import { TopHeader } from "@/components/layout/top-header";
 import { GreetingSection } from "@/components/dashboard/greeting-section";
@@ -114,18 +114,36 @@ function HeroGlow() {
  */
 export function DashboardPreview() {
   const [composerValue, setComposerValue] = React.useState("");
+  const reduceMotion = useReducedMotion();
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const floatControls = useAnimationControls();
+
+  // Tiny parallax: the frame drifts a few px against the page's own scroll,
+  // purely a transform driven by scroll progress — no JS animation loop.
+  const { scrollYProgress } = useScroll({ target: containerRef, offset: ["start end", "end start"] });
+  const parallaxY = useTransform(scrollYProgress, [0, 1], reduceMotion ? [0, 0] : [-14, 14]);
+
+  // Page-load entrance (scale 96% -> 100%, fade+rise) chains into a gentle,
+  // endless float once it lands — two distinct phases on the same `y`/`scale`
+  // values, sequenced via animation controls so they never fight each other.
+  React.useEffect(() => {
+    if (reduceMotion) {
+      floatControls.set({ opacity: 1, y: 0, scale: 1 });
+      return;
+    }
+    floatControls
+      .start({ opacity: 1, y: 0, scale: 1, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } })
+      .then(() => floatControls.start({ y: [0, -8, 0], transition: { duration: 6, repeat: Infinity, ease: "easeInOut" } }));
+  }, [floatControls, reduceMotion]);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 24, scale: 0.98 }}
-      whileInView={{ opacity: 1, y: 0, scale: 1 }}
-      viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-      className="relative isolate mx-auto w-full max-w-[1160px]"
-    >
+    <motion.div ref={containerRef} style={{ y: parallaxY }} className="relative isolate mx-auto w-full max-w-[1160px]">
       <HeroGlow />
 
-      <div className="flex overflow-hidden rounded-2xl border border-border-subtle bg-surface shadow-2xl shadow-black/60">
+      <motion.div
+        initial={{ opacity: 0, y: 24, scale: 0.96 }}
+        animate={floatControls}
+        className="flex overflow-hidden rounded-2xl border border-border-subtle bg-surface shadow-2xl shadow-black/60">
         <aside className="hidden w-[88px] shrink-0 flex-col items-center gap-3 border-r border-border-subtle py-7 sm:flex">
           <Logo className="h-7 w-auto" />
           <span className="mt-12 flex h-11 w-11 items-center justify-center rounded-xl bg-[linear-gradient(160deg,var(--accent-from)_0%,var(--accent-via)_55%,var(--accent-to)_100%)]">
@@ -153,7 +171,7 @@ export function DashboardPreview() {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </motion.div>
   );
 }

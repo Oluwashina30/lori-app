@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { DashboardPreview } from "@/components/marketing/dashboard-preview";
 
@@ -30,13 +31,17 @@ export function HeroSection() {
         </motion.p>
 
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.16, ease: [0.16, 1, 0.3, 1] }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
           className="mt-8 flex flex-col gap-3 sm:flex-row"
         >
-          <Link href="/signup" className={buttonVariants({ variant: "gradient", size: "lg", className: "font-semibold" })}>
+          <Link
+            href="/signup"
+            className={buttonVariants({ variant: "gradient", size: "lg", className: "group font-semibold" })}
+          >
             Get started free
+            <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
           </Link>
           <a href="#how-it-works" className={buttonVariants({ variant: "outline", size: "lg" })}>
             See how it works

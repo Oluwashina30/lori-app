@@ -7,12 +7,23 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className, highlighted, style, ...props }, ref) => {
+  ({ className, highlighted, style, onMouseMove, ...props }, ref) => {
+    // Tracks the cursor position as CSS custom properties so `.card-spotlight`
+    // (globals.css) can paint a soft radial highlight that follows the mouse
+    // — pure CSS custom-property + background update, no animation loop.
+    function handleMouseMove(event: React.MouseEvent<HTMLDivElement>) {
+      const rect = event.currentTarget.getBoundingClientRect();
+      event.currentTarget.style.setProperty("--spot-x", `${((event.clientX - rect.left) / rect.width) * 100}%`);
+      event.currentTarget.style.setProperty("--spot-y", `${((event.clientY - rect.top) / rect.height) * 100}%`);
+      onMouseMove?.(event);
+    }
+
     return (
       <div
         ref={ref}
+        onMouseMove={handleMouseMove}
         className={cn(
-          "rounded-2xl border bg-surface p-6 transition-[transform,border-color,box-shadow] duration-300 ease-out hover:-translate-y-0.5",
+          "card-spotlight rounded-2xl border bg-surface p-6 transition-[transform,border-color,box-shadow] duration-300 ease-out hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30",
           highlighted
             ? "ai-glow-border border border-transparent [background:linear-gradient(var(--surface),var(--surface))_padding-box,linear-gradient(165deg,#FD5B2E_0%,#EA3B1F_100%)_border-box]"
             : "border-border-subtle hover:border-border-strong",

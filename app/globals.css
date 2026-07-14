@@ -201,3 +201,68 @@ body {
     animation: none;
   }
 }
+
+/**
+ * Global safety net: any animation/transition not already guarded by its
+ * own `prefers-reduced-motion` override (below) still gets collapsed to
+ * effectively instant, per the standard a11y pattern. Individual utilities
+ * above additionally set `animation: none` where a lingering 0.01ms loop
+ * would still cost a paint.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/**
+ * Mouse-follow radial highlight for cards (Stripe/Linear-style "spotlight").
+ * The card sets `--spot-x`/`--spot-y` (percentages) via a mousemove handler;
+ * this just paints a soft radial glow at that position, faded in on hover.
+ * Pure opacity + background — no layout impact, no JS-driven animation loop.
+ */
+.card-spotlight {
+  position: relative;
+  isolation: isolate;
+}
+.card-spotlight::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 400ms ease;
+  background: radial-gradient(
+    360px circle at var(--spot-x, 50%) var(--spot-y, 50%),
+    rgba(253, 138, 72, 0.1),
+    transparent 65%
+  );
+  pointer-events: none;
+}
+.card-spotlight:hover::before {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-spotlight::before {
+    transition: none;
+  }
+}
+
+/** Slow, tiny drift used for the AI Insight card's floating particles. */
+@keyframes particle-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0.25;
+  }
+  50% {
+    transform: translate3d(0, -10px, 0);
+    opacity: 0.6;
+  }
+}

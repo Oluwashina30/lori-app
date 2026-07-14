@@ -5,13 +5,13 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-solid/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 hover:scale-[1.02] active:scale-[0.97]",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-medium transition-[transform,box-shadow,background-color,border-color,color,filter] duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-solid/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 hover:-translate-y-0.5 hover:scale-[1.02] active:translate-y-0 active:scale-[0.97]",
   {
     variants: {
       variant: {
         /** Solid brand gradient, e.g. the send button. */
         gradient:
-          "bg-[linear-gradient(160deg,var(--accent-from)_0%,var(--accent-via)_55%,var(--accent-to)_100%)] text-white shadow-[0_4px_16px_-4px_rgba(234,7,7,0.5)] hover:brightness-110",
+          "bg-[linear-gradient(160deg,var(--accent-from)_0%,var(--accent-via)_55%,var(--accent-to)_100%)] text-white shadow-[0_4px_16px_-4px_rgba(234,7,7,0.5)] hover:shadow-[0_10px_28px_-4px_rgba(234,7,7,0.65)] hover:brightness-110",
         /** Gradient-bordered pill on a dark surface, e.g. "Ask AI" — shares the AI Insight card's living shimmer, with a glow scaled down for its size. */
         outline:
           "ai-glow-border-sm relative bg-background text-foreground border border-transparent [background:linear-gradient(var(--background),var(--background))_padding-box,linear-gradient(120deg,var(--accent-from),var(--accent-to))_border-box] hover:brightness-125",
