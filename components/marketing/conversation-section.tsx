@@ -16,12 +16,44 @@ const SUGGESTIONS: ChatSuggestion[] = [
   { id: "4", label: "Can I afford a vacation?" },
 ];
 
-// Playback beats for the scripted "Lori is replying" demo — pure front-end
-// choreography, no backend involved. Each stage reveals the next element;
-// once `response` lands the typing dots are swapped out for it.
-type Stage = "idle" | "message" | "typing" | "response" | "composer";
-const STAGE_ORDER: Stage[] = ["message", "typing", "response", "composer"];
-const STAGE_DELAYS_MS = [400, 900, 1100, 500]; // gap *before* each stage in STAGE_ORDER
+type TurnPhase = "sent" | "typing" | "done";
+
+interface Turn {
+  id: number;
+  userText: string;
+  userTime: string;
+  phase: TurnPhase;
+  aiLines: string[];
+  aiTime: string;
+}
+
+const TYPING_DELAY_MS = 900;
+const THINKING_DELAY_MS = 1100;
+const MAX_VISIBLE_TURNS = 3;
+
+function nowTime() {
+  return new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }).toLowerCase().replace(" ", "");
+}
+
+// Simple keyword matching against a small canned-reply pool — entirely
+// front-end, no AI/backend involved, but varied enough to feel responsive
+// to what was actually typed.
+function getCannedReply(text: string): string[] {
+  const t = text.toLowerCase();
+  if (/(vacation|trip|travel|afford)/.test(t)) {
+    return ["Based on your current pace, you could afford this in about 3 months if you set aside ₦25,000/week."];
+  }
+  if (/(paid|income|salary)/.test(t)) {
+    return ["Nice! I've logged this as income and moved 20% straight into your top goal."];
+  }
+  if (/(save|faster|saving)/.test(t)) {
+    return ["Cutting discretionary spending by ₦5,000/week would get you there about 3 weeks sooner."];
+  }
+  if (/(new goal|create a goal|goal)/.test(t)) {
+    return ["Tell me the amount and a rough deadline, and I'll build the plan around it."];
+  }
+  return ["Got it — I've noted that down and updated your overview."];
+}
 
 const fadeUp = {
   hidden: { opacity: 0, y: 10 },
@@ -29,32 +61,61 @@ const fadeUp = {
 };
 
 export function ConversationSection() {
-  const [composerValue, setComposerValue] = React.useState("Can I afford a vacation?");
-  const [stage, setStage] = React.useState<Stage>("idle");
+  const [composerValue, setComposerValue] = React.useState("");
+  const [turns, setTurns] = React.useState<Turn[]>([]);
+  const [showComposer, setShowComposer] = React.useState(false);
   const started = React.useRef(false);
+  const nextId = React.useRef(0);
+  const cancelled = React.useRef(false);
   const reduceMotion = useReducedMotion();
+
+  React.useEffect(
+    () => () => {
+      cancelled.current = true;
+    },
+    []
+  );
+
+  function playTurn(userText: string, aiLines: string[]) {
+    const id = nextId.current++;
+    const turn: Turn = { id, userText, userTime: nowTime(), phase: "sent", aiLines: [], aiTime: nowTime() };
+
+    if (reduceMotion) {
+      setTurns((prev) => [...prev.slice(-(MAX_VISIBLE_TURNS - 1)), { ...turn, phase: "done", aiLines }]);
+      setShowComposer(true);
+      return;
+    }
+
+    setTurns((prev) => [...prev.slice(-(MAX_VISIBLE_TURNS - 1)), turn]);
+
+    setTimeout(() => {
+      if (cancelled.current) return;
+      setTurns((prev) => prev.map((t) => (t.id === id ? { ...t, phase: "typing" } : t)));
+
+      setTimeout(() => {
+        if (cancelled.current) return;
+        setTurns((prev) => prev.map((t) => (t.id === id ? { ...t, phase: "done", aiLines } : t)));
+        setShowComposer(true);
+      }, THINKING_DELAY_MS);
+    }, TYPING_DELAY_MS);
+  }
 
   function startSequence() {
     if (started.current) return;
     started.current = true;
-
-    if (reduceMotion) {
-      setStage("composer");
-      return;
-    }
-
-    let elapsed = 0;
-    STAGE_ORDER.forEach((s, i) => {
-      elapsed += STAGE_DELAYS_MS[i];
-      setTimeout(() => setStage(s), elapsed);
-    });
+    playTurn("I spent $20 on food", [
+      "Got it! I've added this expense.",
+      "I noticed you've spent more on eating out this week than usual. Would you like me to create a food budget?",
+    ]);
   }
 
-  const stageIndex = STAGE_ORDER.indexOf(stage);
-  const showMessage = stageIndex >= STAGE_ORDER.indexOf("message");
-  const showTyping = stage === "typing";
-  const showResponse = stageIndex >= STAGE_ORDER.indexOf("response");
-  const showComposer = stageIndex >= STAGE_ORDER.indexOf("composer");
+  const busy = turns.length > 0 && turns[turns.length - 1].phase !== "done";
+
+  function handleSubmit(value: string) {
+    if (!value.trim() || busy) return;
+    setComposerValue("");
+    playTurn(value.trim(), getCannedReply(value.trim()));
+  }
 
   return (
     <section id="how-it-works" className="px-4 py-20 sm:px-10 sm:py-28">
@@ -83,56 +144,65 @@ export function ConversationSection() {
           transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
           className="mx-auto mt-14 flex min-h-[420px] w-full max-w-2xl flex-col gap-4"
         >
-          <AnimatePresence>
-            {showMessage && (
-              <motion.div key="message" variants={fadeUp} initial="hidden" animate="show" exit="hidden" className="flex justify-end">
-                <div className="flex items-end gap-2.5">
-                  <div className="max-w-[85%] rounded-2xl bg-surface-elevated px-4 py-2.5">
-                    <span className="text-[13.5px] text-foreground">I spent $20 on food</span>
-                    <span className="ml-2 text-[11px] text-muted-dim">7:45pm</span>
-                  </div>
-                  <Avatar initials="O" name="Oluwashina" className="mb-0.5" />
-                </div>
-              </motion.div>
-            )}
-
-            {showTyping && (
+          <AnimatePresence initial={false}>
+            {turns.map((turn) => (
               <motion.div
-                key="typing"
-                variants={fadeUp}
-                initial="hidden"
-                animate="show"
+                key={turn.id}
+                layout
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, transition: { duration: 0.2 } }}
-                className="flex w-fit items-center gap-1.5 rounded-2xl bg-surface-elevated px-4 py-3"
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                className="flex flex-col gap-4"
               >
-                <span className="h-2 w-2 animate-pulse rounded-full bg-muted" />
-                <span className="h-2 w-2 animate-pulse rounded-full bg-muted [animation-delay:150ms]" />
-                <span className="h-2 w-2 animate-pulse rounded-full bg-muted [animation-delay:300ms]" />
-              </motion.div>
-            )}
+                <div className="flex justify-end">
+                  <div className="flex items-end gap-2.5">
+                    <div className="max-w-[85%] rounded-2xl bg-surface-elevated px-4 py-2.5">
+                      <span className="text-[13.5px] text-foreground">{turn.userText}</span>
+                      <span className="ml-2 text-[11px] text-muted-dim">{turn.userTime}</span>
+                    </div>
+                    <Avatar initials="O" name="Oluwashina" className="mb-0.5" />
+                  </div>
+                </div>
 
-            {showResponse && (
-              <motion.div key="response" variants={fadeUp} initial="hidden" animate="show" exit="hidden">
-                <Card highlighted className="flex flex-col gap-4 p-5">
-                  <div className="flex items-start gap-2.5">
-                    <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-surface-elevated">
-                      <SparkleIcon className="h-4 w-4" />
-                    </span>
-                    <p className="text-[13.5px] leading-relaxed text-foreground">Got it! I&apos;ve added this expense.</p>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <span className="mt-0.5 shrink-0">
-                      <SparkleIcon className="h-4 w-4" />
-                    </span>
-                    <p className="flex-1 text-[13.5px] leading-relaxed text-foreground">
-                      I noticed you&apos;ve spent more on eating out this week than usual. Would you like me to
-                      create a food budget?
-                    </p>
-                    <span className="shrink-0 text-[11px] text-muted-dim">7:45pm</span>
-                  </div>
-                </Card>
+                {turn.phase === "typing" && (
+                  <motion.div
+                    variants={fadeUp}
+                    initial="hidden"
+                    animate="show"
+                    className="flex w-fit items-center gap-1.5 rounded-2xl bg-surface-elevated px-4 py-3"
+                  >
+                    <span className="h-2 w-2 animate-pulse rounded-full bg-muted" />
+                    <span className="h-2 w-2 animate-pulse rounded-full bg-muted [animation-delay:150ms]" />
+                    <span className="h-2 w-2 animate-pulse rounded-full bg-muted [animation-delay:300ms]" />
+                  </motion.div>
+                )}
+
+                {turn.phase === "done" && (
+                  <motion.div variants={fadeUp} initial="hidden" animate="show">
+                    <Card highlighted className="flex flex-col gap-4 p-5">
+                      {turn.aiLines.map((line, i) => (
+                        <div key={i} className="flex items-start gap-2.5">
+                          <span
+                            className={
+                              i === 0
+                                ? "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-surface-elevated"
+                                : "mt-0.5 shrink-0"
+                            }
+                          >
+                            <SparkleIcon className="h-4 w-4" />
+                          </span>
+                          <p className="flex-1 text-[13.5px] leading-relaxed text-foreground">{line}</p>
+                          {i === turn.aiLines.length - 1 && (
+                            <span className="shrink-0 text-[11px] text-muted-dim">{turn.aiTime}</span>
+                          )}
+                        </div>
+                      ))}
+                    </Card>
+                  </motion.div>
+                )}
               </motion.div>
-            )}
+            ))}
 
             {showComposer && (
               <motion.div
@@ -145,7 +215,7 @@ export function ConversationSection() {
                 <ChatComposer
                   value={composerValue}
                   onChange={setComposerValue}
-                  onSubmit={() => setComposerValue("")}
+                  onSubmit={handleSubmit}
                   showLabel={false}
                   minHeight={104}
                 />

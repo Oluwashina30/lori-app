@@ -1,30 +1,58 @@
 "use client";
 
 import * as React from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { SectionHeader } from "@/components/marketing/section-header";
 import { SegmentedProgressBar } from "@/components/ui/segmented-progress-bar";
 import { HouseIcon, CarIcon } from "@/components/icons";
+import { formatCurrency } from "@/lib/utils";
 
-interface GoalRow {
+interface GoalRowData {
   id: string;
   label: string;
   icon: typeof HouseIcon;
   statusLabel: string;
   percentage: number;
   timeLeft: string;
+  current: number;
+  target: number;
+  completionDate: string;
+  monthlyContribution: string;
 }
 
-const GOALS: GoalRow[] = [
-  { id: "rent", label: "Rent", icon: HouseIcon, statusLabel: "Complete ($3,000)", percentage: 100, timeLeft: "6 months left" },
-  { id: "car", label: "Car", icon: CarIcon, statusLabel: "$3,000 / $15,000", percentage: 20, timeLeft: "6 months left" },
+const GOALS: GoalRowData[] = [
+  {
+    id: "rent",
+    label: "Rent",
+    icon: HouseIcon,
+    statusLabel: "Complete ($3,000)",
+    percentage: 100,
+    timeLeft: "6 months left",
+    current: 3000,
+    target: 3000,
+    completionDate: "Completed",
+    monthlyContribution: "—",
+  },
+  {
+    id: "car",
+    label: "Car",
+    icon: CarIcon,
+    statusLabel: "$3,000 / $15,000",
+    percentage: 20,
+    timeLeft: "6 months left",
+    current: 3000,
+    target: 15000,
+    completionDate: "January 2027",
+    monthlyContribution: "$500/month",
+  },
 ];
 
 const ACTIONS = ["Add Money", "Edit", "Pause", "Delete"];
 
-/** A single goal row — holds its own "has this scrolled into view yet" flag so its progress bar fills from 0% the first time it's seen, not on mount. */
-function GoalRow({ goal, delay }: { goal: GoalRow; delay: number }) {
+/** A single goal row — holds its own "has this scrolled into view yet" flag so its progress bar fills from 0% the first time it's seen, not on mount, plus a hover-revealed detail panel. */
+function GoalRow({ goal, delay }: { goal: GoalRowData; delay: number }) {
   const [revealed, setRevealed] = React.useState(false);
+  const [hovered, setHovered] = React.useState(false);
 
   return (
     <motion.div
@@ -42,7 +70,44 @@ function GoalRow({ goal, delay }: { goal: GoalRow; delay: number }) {
         <span className="text-muted">{goal.statusLabel}</span>
       </div>
 
-      <SegmentedProgressBar percentage={revealed ? goal.percentage : 0} className="mt-3" segmentHeight={18} />
+      <div
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        className="cursor-default py-1"
+      >
+        <SegmentedProgressBar percentage={revealed ? goal.percentage : 0} className="mt-2" segmentHeight={18} />
+      </div>
+
+      <AnimatePresence initial={false}>
+        {hovered && (
+          <motion.div
+            initial={{ opacity: 0, height: 0, marginTop: 0 }}
+            animate={{ opacity: 1, height: "auto", marginTop: 12 }}
+            exit={{ opacity: 0, height: 0, marginTop: 0, transition: { duration: 0.2 } }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="grid grid-cols-2 gap-3 rounded-2xl border border-border-subtle bg-surface-elevated p-4 sm:grid-cols-4">
+              <div>
+                <p className="text-[11px] text-muted">Current savings</p>
+                <p className="mt-1 text-[13.5px] font-medium text-foreground">{formatCurrency(goal.current, "USD")}</p>
+              </div>
+              <div>
+                <p className="text-[11px] text-muted">Target</p>
+                <p className="mt-1 text-[13.5px] font-medium text-foreground">{formatCurrency(goal.target, "USD")}</p>
+              </div>
+              <div>
+                <p className="text-[11px] text-muted">Est. completion</p>
+                <p className="mt-1 text-[13.5px] font-medium text-foreground">{goal.completionDate}</p>
+              </div>
+              <div>
+                <p className="text-[11px] text-muted">Monthly contribution</p>
+                <p className="mt-1 text-[13.5px] font-medium text-foreground">{goal.monthlyContribution}</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="mt-3 flex items-center justify-between text-[13px]">
         <div className="flex items-center gap-5">

@@ -20,7 +20,7 @@ import type { SavingsSummary, UserProfile } from "@/lib/types";
 
 const MOCK_USER: UserProfile = { id: "demo", name: "Oluwashina", initials: "O" };
 
-const MOCK_SUMMARY: SavingsSummary = {
+const INITIAL_SUMMARY: SavingsSummary = {
   total: 20000,
   changeAmount: 2230,
   changePercentage: 13.3,
@@ -30,6 +30,38 @@ const MOCK_SUMMARY: SavingsSummary = {
   goalLabel: "Monthly savings goal",
   insightMessage: "Based on your current pace, you'll reach your Car Goal 18 days early.",
 };
+
+// Ticks the mock summary gently upward over a few seconds, purely to make
+// the preview feel like a live dashboard rather than a static screenshot —
+// no backend, just numbers nudging toward a plausible resting state.
+const TICK_MS = 2600;
+const TICK_STEP = 420;
+
+function useLiveSummary(reduceMotion: boolean | null) {
+  const [summary, setSummary] = React.useState(INITIAL_SUMMARY);
+
+  React.useEffect(() => {
+    if (reduceMotion) return;
+    const interval = setInterval(() => {
+      setSummary((prev) => {
+        if (prev.goalCurrent >= prev.goalTarget) {
+          clearInterval(interval);
+          return prev;
+        }
+        const goalCurrent = Math.min(prev.goalTarget, prev.goalCurrent + TICK_STEP);
+        return {
+          ...prev,
+          total: prev.total + TICK_STEP,
+          goalCurrent,
+          goalPercentComplete: Math.round((goalCurrent / prev.goalTarget) * 100),
+        };
+      });
+    }, TICK_MS);
+    return () => clearInterval(interval);
+  }, [reduceMotion]);
+
+  return summary;
+}
 
 const RAIL_ICONS = [ChatBubbleIcon, GoalsTrophyIcon, AnalyticsGaugeIcon, BrainIcon];
 
@@ -117,6 +149,7 @@ export function DashboardPreview() {
   const reduceMotion = useReducedMotion();
   const containerRef = React.useRef<HTMLDivElement>(null);
   const floatControls = useAnimationControls();
+  const summary = useLiveSummary(reduceMotion);
 
   // Tiny parallax: the frame drifts a few px against the page's own scroll,
   // purely a transform driven by scroll progress — no JS animation loop.
@@ -150,8 +183,11 @@ export function DashboardPreview() {
             <DashboardGridIcon className="h-5 w-5 text-white" />
           </span>
           {RAIL_ICONS.map((Icon, i) => (
-            <span key={i} className="flex h-11 w-11 items-center justify-center rounded-xl">
-              <Icon className="h-5 w-5 text-muted-dim" />
+            <span
+              key={i}
+              className="flex h-11 w-11 items-center justify-center rounded-xl transition-colors duration-200 hover:bg-surface-elevated"
+            >
+              <Icon className="h-5 w-5 text-muted-dim transition-transform duration-200 hover:scale-110 hover:text-foreground" />
             </span>
           ))}
         </aside>
@@ -163,7 +199,7 @@ export function DashboardPreview() {
             <div className="flex flex-col gap-8">
               <GreetingSection name={MOCK_USER.name} subtitle="Your finances are looking healthy this month" />
 
-              <TotalSavingsCard summary={MOCK_SUMMARY} currency="USD" />
+              <TotalSavingsCard summary={summary} currency="USD" />
 
               <AIRecommendationBanner message="You could reach your savings goal 12 days earlier by reducing food expenses by ₦2,000/week." />
 
