@@ -1,14 +1,14 @@
 "use client";
 
 import * as React from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronDown } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
-import { SelectableChip } from "@/components/onboarding/selectable";
 import { GoalCard } from "@/components/goals/goal-card";
 import { GoalDialog, type GoalDialogValues } from "@/components/goals/goal-dialog";
 import { ContributeDialog } from "@/components/goals/contribute-dialog";
-import { GoalsTrophyIcon } from "@/components/icons/sidebar-icons";
+import { cn } from "@/lib/utils";
 import {
   createGoalApi,
   updateGoalApi,
@@ -35,6 +35,21 @@ export interface GoalsPageClientProps {
 export function GoalsPageClient({ user, currency, initialGoals }: GoalsPageClientProps) {
   const [goals, setGoals] = React.useState(initialGoals);
   const [filter, setFilter] = React.useState<(typeof FILTERS)[number]["key"]>("ALL");
+  const [filterMenuOpen, setFilterMenuOpen] = React.useState(false);
+  const filterMenuRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (!filterMenuOpen) return;
+    function handleClickOutside(event: MouseEvent) {
+      if (filterMenuRef.current && !filterMenuRef.current.contains(event.target as Node)) {
+        setFilterMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [filterMenuOpen]);
+
+  const activeFilterLabel = FILTERS.find((f) => f.key === filter)?.label ?? "All";
 
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editingGoal, setEditingGoal] = React.useState<GoalDetail | null>(null);
@@ -123,31 +138,50 @@ export function GoalsPageClient({ user, currency, initialGoals }: GoalsPageClien
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="flex flex-wrap items-center justify-between gap-4"
+        className="relative flex flex-col items-center gap-1.5 text-center"
       >
-        <div>
-          <div className="flex items-center gap-2.5">
-            <GoalsTrophyIcon className="h-5 w-5 text-accent-solid" />
-            <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-[26px]">Goals</h1>
-          </div>
-          <p className="mt-1.5 text-sm text-muted sm:text-[15px]">Track every savings goal in one place.</p>
-        </div>
-        <Button type="button" onClick={openCreateDialog}>
-          Add goal
-        </Button>
-      </motion.div>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Goals</h1>
+        <p className="text-sm text-muted sm:text-[15px]">Track every savings goal in one place.</p>
 
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}
-        className="flex flex-wrap gap-2.5"
-      >
-        {FILTERS.map((f) => (
-          <SelectableChip key={f.key} selected={filter === f.key} onClick={() => setFilter(f.key)}>
-            {f.label}
-          </SelectableChip>
-        ))}
+        <div ref={filterMenuRef} className="absolute right-0 top-0">
+          <button
+            type="button"
+            onClick={() => setFilterMenuOpen((open) => !open)}
+            className="flex items-center gap-1.5 rounded-full border border-border-subtle bg-surface px-4 py-2 text-[13.5px] font-medium text-foreground transition-colors duration-200 hover:border-border-strong"
+          >
+            {activeFilterLabel}
+            <ChevronDown className={cn("h-4 w-4 text-muted transition-transform duration-200", filterMenuOpen && "rotate-180")} />
+          </button>
+
+          <AnimatePresence>
+            {filterMenuOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+                className="absolute right-0 top-[calc(100%+8px)] z-10 min-w-[160px] overflow-hidden rounded-xl border border-border-subtle bg-surface-elevated py-1.5 shadow-xl shadow-black/30"
+              >
+                {FILTERS.map((f) => (
+                  <button
+                    key={f.key}
+                    type="button"
+                    onClick={() => {
+                      setFilter(f.key);
+                      setFilterMenuOpen(false);
+                    }}
+                    className={cn(
+                      "block w-full px-4 py-2 text-left text-[13.5px] font-medium transition-colors duration-150",
+                      filter === f.key ? "text-accent-solid" : "text-foreground hover:bg-white/5"
+                    )}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </motion.div>
 
       {filteredGoals.length === 0 ? (
@@ -155,14 +189,14 @@ export function GoalsPageClient({ user, currency, initialGoals }: GoalsPageClien
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4, delay: 0.15 }}
-          className="text-[14px] text-muted-dim"
+          className="text-center text-[14px] text-muted-dim"
         >
           {goals.length === 0
             ? "No goals yet — add one to start tracking progress."
             : "No goals match this filter."}
         </motion.p>
       ) : (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="flex flex-col">
           {filteredGoals.map((goal, i) => (
             <GoalCard
               key={goal.id}
@@ -177,6 +211,17 @@ export function GoalsPageClient({ user, currency, initialGoals }: GoalsPageClien
           ))}
         </div>
       )}
+
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+        className="flex justify-end"
+      >
+        <Button type="button" onClick={openCreateDialog}>
+          Add new goal
+        </Button>
+      </motion.div>
 
       <GoalDialog
         open={dialogOpen}
