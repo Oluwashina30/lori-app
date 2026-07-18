@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
+import { FormattedText } from "@/components/ui/formatted-text";
 import { WandIcon } from "@/components/icons";
 import { formatRelativeTime, humanizeInsightTitle } from "@/lib/utils";
 import type { InsightRecord } from "@/lib/types";
@@ -52,7 +53,9 @@ export function InsightHistoryCard({ insight, index, onDismiss }: InsightHistory
 
         <div className="rounded-xl bg-surface-elevated p-4">
           <p className="text-[14px] font-medium text-foreground">{displayTitle(insight)}</p>
-          <p className="mt-2 text-[14px] leading-relaxed text-muted">{insight.content}</p>
+          <p className="mt-2 text-[14px] leading-relaxed text-muted">
+            <FormattedText text={insight.content} />
+          </p>
         </div>
 
         {onDismiss && !insight.dismissed && (

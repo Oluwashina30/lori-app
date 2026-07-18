@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Receipt } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { FormattedText } from "@/components/ui/formatted-text";
 import { SparkleIcon } from "@/components/icons";
 import type { AssistantBlock, ChatMessage } from "@/lib/types";
 
@@ -44,7 +45,9 @@ export function AssistantMessage({ message }: AssistantMessageProps) {
           {message.blocks?.map((block, i) => (
             <div key={i} className="flex items-center gap-3">
               <BlockIcon kind={block.kind} />
-              <p className="text-[15px] text-foreground">{block.text}</p>
+              <p className="text-[15px] text-foreground">
+                <FormattedText text={block.text} />
+              </p>
             </div>
           ))}
         </div>
