@@ -386,9 +386,9 @@ export function MobileTopBar({ user, onNavigate }: MobileTopBarProps) {
       </div>
 
       <div className="flex items-center gap-3">
-        <Link href="/chat" className={buttonVariants({ variant: "outline", size: "sm" })} aria-label="Ask AI">
+        <Link href="/chat" className={buttonVariants({ variant: "outline", size: "sm" })} aria-label="Ask Lori">
           <SparkleIcon className="h-4 w-4" />
-          Ask AI
+          Ask Lori
         </Link>
         <Avatar initials={user.initials} name={user.name} />
       </div>

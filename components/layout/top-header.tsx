@@ -11,9 +11,9 @@ export interface TopHeaderProps {
 export function TopHeader({ user }: TopHeaderProps) {
   return (
     <header className="hidden items-center justify-end gap-4 md:flex">
-      <Link href="/chat" className={buttonVariants({ variant: "outline", size: "default" })} aria-label="Ask AI">
+      <Link href="/chat" className={buttonVariants({ variant: "outline", size: "default" })} aria-label="Ask Lori">
         <SparkleIcon className="h-4 w-4" />
-        Ask AI
+        Ask Lori
       </Link>
       <Avatar initials={user.initials} name={user.name} />
     </header>
