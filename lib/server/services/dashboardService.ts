@@ -71,7 +71,7 @@ export async function getDashboardData(userId: string) {
   ]);
 
   const totalSaved = goals.reduce((sum, g) => sum + Number(g.currentAmount), 0);
-  const primaryGoal = goals[0]; // simplest "which goal to headline" rule — swap for nearest-deadline once you have >1 goal reliably
+  const totalTarget = goals.reduce((sum, g) => sum + Number(g.targetAmount), 0);
 
   const monthContributions = monthTxns
     .filter((t) => t.type === "CONTRIBUTION")
@@ -114,12 +114,10 @@ export async function getDashboardData(userId: string) {
       // Wiring zeros for now rather than fabricating a trend.
       changeAmount: 0,
       changePercentage: 0,
-      goalCurrent: primaryGoal ? Number(primaryGoal.currentAmount) : 0,
-      goalTarget: primaryGoal ? Number(primaryGoal.targetAmount) : 0,
-      goalPercentComplete: primaryGoal
-        ? Math.min(100, Math.round((Number(primaryGoal.currentAmount) / Number(primaryGoal.targetAmount)) * 100))
-        : 0,
-      goalLabel: primaryGoal ? "Monthly savings goal" : "No active goal yet",
+      goalCurrent: totalSaved,
+      goalTarget: totalTarget,
+      goalPercentComplete: totalTarget > 0 ? Math.min(100, Math.round((totalSaved / totalTarget) * 100)) : 0,
+      goalLabel: goals.length > 0 ? "Combined savings goal" : "No active goal yet",
       insightMessage: latestInsight?.content ?? "Start a goal from the chat box to see progress here.",
     },
     savingsPlan: goals.map((g) => ({
