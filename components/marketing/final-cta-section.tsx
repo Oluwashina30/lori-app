@@ -19,7 +19,7 @@ export function FinalCtaSection() {
           See what your money has been trying to tell you.
         </h2>
 
-        <div className="flex shrink-0 flex-col gap-3 sm:flex-row">
+        <div className="flex w-full shrink-0 flex-col items-center gap-3 sm:w-auto sm:flex-row">
           <Link
             href="/signup"
             className={buttonVariants({ variant: "gradient", size: "lg", className: "group font-semibold" })}
