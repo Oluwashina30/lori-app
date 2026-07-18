@@ -4,7 +4,6 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/layout/app-shell";
 import { GreetingSection } from "@/components/dashboard/greeting-section";
-import { AIRecommendationBanner } from "@/components/dashboard/ai-recommendation-banner";
 import { ChatComposer } from "@/components/dashboard/chat-composer";
 import { SuggestionChips } from "@/components/dashboard/suggestion-chips";
 import { TotalSavingsCard } from "@/components/dashboard/total-savings-card";
@@ -41,8 +40,6 @@ export function DashboardShell({ data }: DashboardShellProps) {
       <GreetingSection name={data.user.name} subtitle={data.greetingSubtitle} />
 
       <TotalSavingsCard summary={data.savingsSummary} currency={data.currency} />
-
-      <AIRecommendationBanner message={data.recommendation.message} />
 
       <div className="flex flex-col gap-4">
         <ChatComposer value={composerValue} onChange={setComposerValue} onSubmit={handleSubmit} />

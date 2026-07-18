@@ -6,7 +6,6 @@ import { AppShell } from "@/components/layout/app-shell";
 import { ChatComposer } from "@/components/dashboard/chat-composer";
 import { TypingIndicator } from "@/components/chat/typing-indicator";
 import { InsightHistoryCard } from "@/components/insights/insight-history-card";
-import { BrainIcon } from "@/components/icons/sidebar-icons";
 import { askInsight, dismissInsight } from "@/lib/api-client";
 import type { InsightRecord, UserProfile } from "@/lib/types";
 
@@ -63,12 +62,10 @@ export function InsightsPageClient({ user, initialHistory }: InsightsPageClientP
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        className="flex flex-col items-center gap-1.5 text-center"
       >
-        <div className="flex items-center gap-2.5">
-          <BrainIcon className="h-5 w-5 text-accent-solid" />
-          <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-[26px]">AI Insights</h1>
-        </div>
-        <p className="mt-1.5 text-sm text-muted sm:text-[15px]">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">AI Insights</h1>
+        <p className="text-sm text-muted sm:text-[15px]">
           Ask anything about your money, or revisit what Lori&apos;s already told you.
         </p>
       </motion.div>

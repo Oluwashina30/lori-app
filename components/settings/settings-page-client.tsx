@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { SelectableChip } from "@/components/onboarding/selectable";
 import { DeleteAccountDialog } from "@/components/settings/delete-account-dialog";
 import { useLogout } from "@/components/layout/sidebar";
-import { SettingsGearIcon } from "@/components/icons/sidebar-icons";
 import { updateUserSettings, deleteAccount } from "@/lib/api-client";
 import { createClient } from "@/lib/supabase/client";
 import { CURRENCY_SYMBOLS } from "@/lib/utils";
@@ -105,12 +104,10 @@ export function SettingsPageClient({ user, initialSettings }: SettingsPageClient
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        className="flex flex-col items-center gap-1.5 text-center"
       >
-        <div className="flex items-center gap-2.5">
-          <SettingsGearIcon className="h-5 w-5 text-accent-solid" />
-          <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-[26px]">Settings</h1>
-        </div>
-        <p className="mt-1.5 text-sm text-muted sm:text-[15px]">Manage your profile, currency, and account.</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Settings</h1>
+        <p className="text-sm text-muted sm:text-[15px]">Manage your profile, currency, and account.</p>
       </motion.div>
 
       <motion.div

@@ -422,6 +422,11 @@ export function MobileTopBar({ user, onNavigate }: MobileTopBarProps) {
               exit="hidden"
               className="fixed inset-y-0 left-0 z-50 flex w-64 flex-col gap-2 border-r border-border-subtle bg-surface p-4"
             >
+              <div className="flex items-center gap-2.5 px-3.5 pb-8">
+                <Logo className="h-7 w-auto" />
+                <span className="text-[19px] font-semibold tracking-tight text-foreground">Lori</span>
+              </div>
+
               {allItems.map((item) => (
                 <NavButton
                   key={item.id}

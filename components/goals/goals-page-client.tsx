@@ -196,7 +196,7 @@ export function GoalsPageClient({ user, currency, initialGoals }: GoalsPageClien
             : "No goals match this filter."}
         </motion.p>
       ) : (
-        <div className="flex flex-col">
+        <div className="flex flex-col gap-4">
           {filteredGoals.map((goal, i) => (
             <GoalCard
               key={goal.id}
