@@ -101,6 +101,7 @@ export interface ActivityItem {
 }
 
 export interface AIInsight {
+  id: string;
   title: string;
   message: string;
 }
@@ -188,7 +189,7 @@ export interface DashboardData {
   savingsPlan: SavingsPlanItem[];
   cashFlow: CashFlowSummary;
   activities: ActivityItem[];
-  aiInsight: AIInsight;
+  aiInsights: AIInsight[];
 }
 
 /** Currency used across all monetary formatting. Centralised so it can be made a user preference later. */

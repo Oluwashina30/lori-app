@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { WandIcon } from "@/components/icons";
-import { formatRelativeTime } from "@/lib/utils";
+import { formatRelativeTime, humanizeInsightTitle } from "@/lib/utils";
 import type { InsightRecord } from "@/lib/types";
 
 const TYPE_LABEL: Record<InsightRecord["type"], string> = {
@@ -14,11 +14,11 @@ const TYPE_LABEL: Record<InsightRecord["type"], string> = {
   AUTO_SAVE_RECOMMENDATION: "Auto-save",
 };
 
-// generateInsight() (insightService.ts) always titles on-demand rows
-// "Insight: <question>" — stripping that prefix here shows the question
-// itself as the card's title, purely a display concern.
+// Older on-demand rows were titled "Insight: <focus>" (an internal
+// snake_case enum value) — humanize that for display; newer rows already
+// store a clean title and pass through unchanged.
 function displayTitle(insight: InsightRecord): string {
-  return insight.type === "SUGGESTION" ? insight.title.replace(/^Insight:\s*/, "") : insight.title;
+  return insight.type === "SUGGESTION" ? humanizeInsightTitle(insight.title) : insight.title;
 }
 
 export interface InsightHistoryCardProps {

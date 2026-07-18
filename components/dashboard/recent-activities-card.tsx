@@ -1,10 +1,14 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { ChevronRight } from "lucide-react";
 import { Card, CardTitle } from "@/components/ui/card";
 import { CircleDollarSignIcon } from "@/components/icons";
 import { formatSignedCurrency } from "@/lib/utils";
 import type { ActivityItem } from "@/lib/types";
+
+const MAX_VISIBLE_ACTIVITIES = 3;
 
 export interface RecentActivitiesCardProps {
   activities: ActivityItem[];
@@ -49,6 +53,10 @@ const itemVariants = {
 };
 
 export function RecentActivitiesCard({ activities, currency, className }: RecentActivitiesCardProps) {
+  const router = useRouter();
+  const visibleActivities = activities.slice(0, MAX_VISIBLE_ACTIVITIES);
+  const hasMore = activities.length > MAX_VISIBLE_ACTIVITIES;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -65,7 +73,7 @@ export function RecentActivitiesCard({ activities, currency, className }: Recent
           animate="show"
           className="mt-5 flex flex-col gap-1"
         >
-          {activities.map((activity) => (
+          {visibleActivities.map((activity) => (
             <motion.li
               variants={itemVariants}
               key={activity.id}
@@ -90,6 +98,17 @@ export function RecentActivitiesCard({ activities, currency, className }: Recent
             </motion.li>
           ))}
         </motion.ul>
+
+        {hasMore && (
+          <button
+            type="button"
+            onClick={() => router.push("/analytics")}
+            className="mt-3 flex items-center gap-1 text-[13px] font-medium text-accent-solid transition-opacity hover:opacity-80"
+          >
+            View more
+            <ChevronRight className="h-3.5 w-3.5" />
+          </button>
+        )}
       </Card>
     </motion.div>
   );

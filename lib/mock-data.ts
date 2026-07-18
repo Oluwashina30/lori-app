@@ -59,9 +59,17 @@ export const mockDashboardData: DashboardData = {
     { id: "a2", name: "Spotify", date: "1 Dec", amount: 10, type: "expense", icon: "spotify" },
     { id: "a3", name: "June Salary", date: "1 Dec", amount: 2000, type: "income", icon: "salary" },
   ],
-  aiInsight: {
-    title: "Insight",
-    message:
-      "You're ahead of schedule. Increasing your weekly savings by \u20a62,000 would let you reach your goal 18 days earlier.",
-  },
+  aiInsights: [
+    {
+      id: "i1",
+      title: "Insight",
+      message:
+        "You're ahead of schedule. Increasing your weekly savings by \u20a62,000 would let you reach your goal 18 days earlier.",
+    },
+    {
+      id: "i2",
+      title: "Spending pattern",
+      message: "Food spend is up 15% this month compared to your 3-month average.",
+    },
+  ],
 };

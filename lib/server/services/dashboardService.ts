@@ -1,4 +1,5 @@
 import { prisma } from "../../prisma";
+import { humanizeInsightTitle } from "@/lib/utils";
 
 // Maps a goal's free-text category (see prisma/schema.prisma Goal.category)
 // to one of the icon keys the frontend's SavingsPlanIcon type supports.
@@ -33,6 +34,18 @@ function goalStatus(current: number, target: number): "in-progress" | "complete"
   return "in-progress";
 }
 
+// The greeting subtitle is a short narrative status line, not an insight
+// category label — keep it separate from the AI insight feed entirely.
+function getGreetingSubtitle(monthContributions: number, monthExpenses: number): string {
+  if (monthContributions === 0 && monthExpenses === 0) {
+    return "Here's where your money stands today";
+  }
+  if (monthContributions >= monthExpenses) {
+    return "Your finances are looking healthy this month";
+  }
+  return "Let's keep an eye on spending this month";
+}
+
 /**
  * Builds the full dashboard payload for a user in one call. This is what
  * the frontend's fetchDashboardData() hits — every field here maps 1:1 to
@@ -45,7 +58,7 @@ export async function getDashboardData(userId: string) {
 
   // All six reads are independent — fire them in parallel instead of
   // waiting on each round trip in sequence.
-  const [user, goals, monthTxns, recentTxns, latestRecommendation, latestInsight] = await Promise.all([
+  const [user, goals, monthTxns, recentTxns, latestRecommendation, recentInsights] = await Promise.all([
     prisma.user.findUniqueOrThrow({ where: { id: userId } }),
     prisma.goal.findMany({
       where: { userId, status: "ACTIVE" },
@@ -64,11 +77,16 @@ export async function getDashboardData(userId: string) {
       where: { userId, type: "AUTO_SAVE_RECOMMENDATION", dismissed: false },
       orderBy: { createdAt: "desc" },
     }),
-    prisma.insight.findFirst({
+    // Several recent insights, not just the latest — the dashboard card
+    // stacks as many as fit within its max height, so shorter insights
+    // let more of them show while longer ones naturally push others out.
+    prisma.insight.findMany({
       where: { userId, dismissed: false },
       orderBy: { createdAt: "desc" },
+      take: 5,
     }),
   ]);
+  const latestInsight = recentInsights[0];
 
   const totalSaved = goals.reduce((sum, g) => sum + Number(g.currentAmount), 0);
   const totalTarget = goals.reduce((sum, g) => sum + Number(g.targetAmount), 0);
@@ -93,7 +111,7 @@ export async function getDashboardData(userId: string) {
         .slice(0, 2),
     },
     currency: user.currency,
-    greetingSubtitle: latestInsight?.title ?? "Here's where your money stands today",
+    greetingSubtitle: getGreetingSubtitle(monthContributions, monthExpenses),
     recommendation: {
       // NOTE: recommendation.message expects a single actionable line — this
       // pulls the latest AI auto-save recommendation insight if one exists.
@@ -141,9 +159,19 @@ export async function getDashboardData(userId: string) {
       type: t.type === "EXPENSE" ? "expense" : "income",
       icon: TXN_ICON_MAP[t.category ?? ""] ?? "salary",
     })),
-    aiInsight: {
-      title: "Insight",
-      message: latestInsight?.content ?? "Log a few transactions and I'll start surfacing insights here.",
-    },
+    aiInsights:
+      recentInsights.length > 0
+        ? recentInsights.map((insight) => ({
+            id: insight.id,
+            title: humanizeInsightTitle(insight.title),
+            message: insight.content,
+          }))
+        : [
+            {
+              id: "placeholder",
+              title: "Insight",
+              message: "Log a few transactions and I'll start surfacing insights here.",
+            },
+          ],
   };
 }

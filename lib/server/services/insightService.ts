@@ -6,6 +6,13 @@ import { formatCurrency } from "@/lib/utils";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+const FOCUS_LABELS: Record<string, string> = {
+  goal_progress: "Goal progress",
+  spending_breakdown: "Spending breakdown",
+  forecast: "Forecast",
+  general: "Insight",
+};
+
 /**
  * On-demand insight — called when the user asks a question in chat
  * (request_insight tool). Pulls relevant data and asks Claude to reason
@@ -47,7 +54,7 @@ Give a short (2-4 sentence), specific, encouraging-but-honest answer. Include a 
     data: {
       userId,
       type: "SUGGESTION",
-      title: `Insight: ${focus}`,
+      title: FOCUS_LABELS[focus] ?? "Insight",
       content,
     },
   });

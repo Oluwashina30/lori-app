@@ -55,7 +55,7 @@ export function DashboardShell({ data }: DashboardShellProps) {
           <RecentActivitiesCard activities={data.activities} currency={data.currency} />
         </div>
 
-        <AIInsightCard insight={data.aiInsight} className="md:col-span-2 lg:col-span-1" />
+        <AIInsightCard insights={data.aiInsights} className="md:col-span-2 lg:col-span-1" />
       </div>
     </AppShell>
   );

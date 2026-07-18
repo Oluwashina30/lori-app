@@ -67,6 +67,21 @@ export function formatDeadline(iso: string, now: Date = new Date()): string {
   return `${years} year${years === 1 ? "" : "s"} left`;
 }
 
+/**
+ * Cleans up a stored insight title for display. Older/on-demand rows are
+ * titled "Insight: <focus>" where <focus> is an internal snake_case enum
+ * value (see request_insight's focus schema) — strip that prefix and
+ * humanize the remainder so it reads naturally (e.g. "Insight: goal_progress"
+ * -> "Goal progress") instead of leaking internal identifiers.
+ */
+export function humanizeInsightTitle(title: string): string {
+  const stripped = title.replace(/^Insight:\s*/i, "");
+  if (stripped === title) return title;
+  return stripped
+    .replace(/_/g, " ")
+    .replace(/^\w/, (c) => c.toUpperCase());
+}
+
 /** Coarse relative-time label for history feeds, e.g. "3m ago", "Yesterday", "Jul 8". */
 export function formatRelativeTime(iso: string, now: Date = new Date()): string {
   const date = new Date(iso);
