@@ -7,9 +7,13 @@ import { Logo } from "@/components/layout/logo";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+// Prefixed with "/" rather than a bare "#id" so these still resolve correctly
+// when this nav is rendered on a page other than the landing page itself
+// (e.g. /about) — a bare hash would just rewrite the current URL with no
+// matching element to scroll to.
 const NAV_LINKS = [
-  { id: "features", href: "#features", label: "Features" },
-  { id: "how-it-works", href: "#how-it-works", label: "How it works" },
+  { id: "features", href: "/#features", label: "Features" },
+  { id: "how-it-works", href: "/#how-it-works", label: "How it works" },
 ];
 
 /** Tracks which nav-linked section is currently most visible, for the sliding active-link indicator. */
@@ -83,14 +87,14 @@ export function LandingNav() {
       className="sticky top-0 z-40 border-b border-border-subtle bg-background/70 backdrop-blur-md"
     >
       <div className="mx-auto flex w-full max-w-[1240px] items-center justify-between px-4 py-4 sm:px-10">
-        <Link href="#top" className="flex items-center gap-2.5" aria-label="Lori home">
+        <Link href="/" className="flex items-center gap-2.5" aria-label="Lori home">
           <Logo className="h-7 w-auto" />
           <span className="text-[19px] font-semibold tracking-tight text-foreground">Lori</span>
         </Link>
 
         <nav aria-label="Primary" className="hidden items-center gap-8 md:flex">
           {NAV_LINKS.map((link) => (
-            <a
+            <Link
               key={link.id}
               href={link.href}
               className={cn(
@@ -107,7 +111,7 @@ export function LandingNav() {
                   transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
                 />
               )}
-            </a>
+            </Link>
           ))}
         </nav>
 
@@ -142,7 +146,7 @@ export function LandingNav() {
           >
             <nav aria-label="Primary mobile" className="flex flex-col gap-1 px-4 py-4">
               {NAV_LINKS.map((link) => (
-                <a
+                <Link
                   key={link.id}
                   href={link.href}
                   onClick={() => setMobileOpen(false)}
@@ -152,7 +156,7 @@ export function LandingNav() {
                   )}
                 >
                   {link.label}
-                </a>
+                </Link>
               ))}
 
               <div className="mt-3 flex flex-col gap-2.5 px-3">
