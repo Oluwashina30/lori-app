@@ -25,6 +25,9 @@ export function LandingFooter() {
           <a href="#features" className="transition-colors duration-200 hover:text-foreground">
             Features
           </a>
+          <Link href="/about" className="transition-colors duration-200 hover:text-foreground">
+            About
+          </Link>
           <Link href="/terms" className="transition-colors duration-200 hover:text-foreground">
             Terms
           </Link>
