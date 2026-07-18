@@ -12,9 +12,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const { message } = await req.json();
-  if (!message || typeof message !== "string") {
-    return NextResponse.json({ error: "message is required" }, { status: 400 });
+  const { message, image } = await req.json();
+  if (typeof message !== "string" || (!message.trim() && !image)) {
+    return NextResponse.json({ error: "message or image is required" }, { status: 400 });
+  }
+  if (image && (typeof image.data !== "string" || typeof image.mediaType !== "string")) {
+    return NextResponse.json({ error: "image must include data and mediaType" }, { status: 400 });
+  }
+  // Base64 inflates size ~4/3x; cap the encoded string well under Claude's own
+  // per-image limit rather than trusting the client-side check alone.
+  if (image && image.data.length > 6_000_000) {
+    return NextResponse.json({ error: "Image is too large — please attach one under 4MB." }, { status: 400 });
   }
 
   try {
@@ -28,7 +36,9 @@ export async function POST(req: NextRequest) {
       take: 6,
     });
 
-    await prisma.chatMessage.create({ data: { userId, role: "user", content: message } });
+    await prisma.chatMessage.create({
+      data: { userId, role: "user", content: message || "[Photo attached]" },
+    });
 
     // This is the actual AI call — Claude runs server-side here, inside the
     // route handler. ANTHROPIC_API_KEY lives only in Vercel's server
@@ -44,7 +54,8 @@ export async function POST(req: NextRequest) {
         })),
         recentSpendSummary: transactionService.summarizeSpend(spend, user.currency),
       },
-      history.reverse().map((h) => ({ role: h.role as "user" | "assistant", content: h.content }))
+      history.reverse().map((h) => ({ role: h.role as "user" | "assistant", content: h.content })),
+      image
     );
 
     const result = await executeIntent(userId, intent, message);

@@ -36,10 +36,15 @@ export interface ChatApiResponse {
   needsClarification: boolean;
 }
 
-export function sendChatMessage(message: string): Promise<ChatApiResponse> {
+export interface ChatImageAttachment {
+  data: string; // base64, no data-URL prefix
+  mediaType: string;
+}
+
+export function sendChatMessage(message: string, image?: ChatImageAttachment): Promise<ChatApiResponse> {
   return apiFetch<ChatApiResponse>("/chat", {
     method: "POST",
-    body: JSON.stringify({ message }),
+    body: JSON.stringify({ message, image }),
   });
 }
 

@@ -4,7 +4,7 @@ import * as React from "react";
 import { AnimatePresence } from "framer-motion";
 import { AppShell } from "@/components/layout/app-shell";
 import { GreetingSection } from "@/components/dashboard/greeting-section";
-import { ChatComposer } from "@/components/dashboard/chat-composer";
+import { ChatComposer, type ChatComposerImage } from "@/components/dashboard/chat-composer";
 import { SuggestionChips } from "@/components/dashboard/suggestion-chips";
 import { UserMessage } from "@/components/chat/user-message";
 import { AssistantMessage } from "@/components/chat/assistant-message";
@@ -29,22 +29,25 @@ export function ChatPageClient({ user, greetingSubtitle, suggestions }: ChatPage
     setComposerValue(suggestion.label);
   }
 
-  // Picks up a message handed off from the dashboard composer (see
-  // dashboard-shell.tsx's handleSubmit) and sends it immediately on arrival.
+  // Picks up a message (and optional image) handed off from the dashboard
+  // composer (see dashboard-shell.tsx's handleSubmit) and sends it
+  // immediately on arrival.
   React.useEffect(() => {
     const pending = sessionStorage.getItem("lori:pending-message");
-    if (pending) {
+    const pendingImage = sessionStorage.getItem("lori:pending-image");
+    if (pending || pendingImage) {
       sessionStorage.removeItem("lori:pending-message");
-      handleSubmit(pending);
+      sessionStorage.removeItem("lori:pending-image");
+      handleSubmit(pending ?? "", pendingImage ? (JSON.parse(pendingImage) as ChatComposerImage) : null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function handleSubmit(value: string) {
+  async function handleSubmit(value: string, image?: ChatComposerImage | null) {
     const userMessage: ChatMessage = {
       id: crypto.randomUUID(),
       role: "user",
-      text: value,
+      text: value || "📷 Photo",
       timestamp: formatChatTimestamp(),
     };
     setMessages((prev) => [...prev, userMessage]);
@@ -52,7 +55,7 @@ export function ChatPageClient({ user, greetingSubtitle, suggestions }: ChatPage
     setIsTyping(true);
 
     try {
-      const response = await sendChatMessage(value);
+      const response = await sendChatMessage(value, image ?? undefined);
       const assistantMessage: ChatMessage = {
         id: crypto.randomUUID(),
         role: "assistant",

@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/layout/app-shell";
 import { GreetingSection } from "@/components/dashboard/greeting-section";
-import { ChatComposer } from "@/components/dashboard/chat-composer";
+import { ChatComposer, type ChatComposerImage } from "@/components/dashboard/chat-composer";
 import { SuggestionChips } from "@/components/dashboard/suggestion-chips";
 import { TotalSavingsCard } from "@/components/dashboard/total-savings-card";
 import { SavingsPlanCard } from "@/components/dashboard/savings-plan-card";
@@ -25,12 +25,13 @@ export function DashboardShell({ data }: DashboardShellProps) {
     setComposerValue(suggestion.label);
   }
 
-  function handleSubmit(value: string) {
+  function handleSubmit(value: string, image?: ChatComposerImage | null) {
     // The dashboard composer is an entry point, not a full chat surface —
-    // hand the message off to /chat, which owns the real conversation and
-    // the actual backend call. sessionStorage survives the client navigation
-    // without polluting the URL with the raw message text.
+    // hand the message (and any attached image) off to /chat, which owns
+    // the real conversation and the actual backend call. sessionStorage
+    // survives the client navigation without polluting the URL.
     sessionStorage.setItem("lori:pending-message", value);
+    if (image) sessionStorage.setItem("lori:pending-image", JSON.stringify(image));
     setComposerValue("");
     router.push("/chat");
   }

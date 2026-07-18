@@ -16,6 +16,12 @@ export interface UserContext {
   recentSpendSummary?: string; // e.g. "Last 7 days: food ₦18,000, transport ₦9,500"
 }
 
+export interface ImageAttachment {
+  /** Base64-encoded image bytes, no data-URL prefix. */
+  data: string;
+  mediaType: "image/jpeg" | "image/png" | "image/gif" | "image/webp";
+}
+
 /**
  * Sends the user's chat message + live context to Claude, forces a tool call,
  * and returns the structured action alongside a conversational reply.
@@ -30,7 +36,8 @@ export interface UserContext {
 export async function parseIntent(
   message: string,
   context: UserContext,
-  history: { role: "user" | "assistant"; content: string }[] = []
+  history: { role: "user" | "assistant"; content: string }[] = [],
+  image?: ImageAttachment
 ): Promise<ParsedIntent> {
   const fmt = (v: number) => formatCurrency(v, context.currency);
   const systemPrompt = `You are the intent-parsing layer of an AI savings app. Your job: read the user's message, decide which single tool applies, and call it with accurate extracted data.
@@ -50,7 +57,15 @@ Rules:
 - For add_contribution and request_insight, use goalNameHint to loosely match one of the active goals above — don't invent a goal name that isn't close to an existing one.
 - Numbers passed to tools: strip currency symbols/commas, return plain numbers.
 - In your natural-language reply text, always write money amounts using the exact currency symbol shown above (e.g. "${fmt(1000)}"), never a different currency's symbol.
-- Be conservative about create_goal — only create a NEW goal if the user is clearly describing something not already in their active goals list.`;
+- Be conservative about create_goal — only create a NEW goal if the user is clearly describing something not already in their active goals list.
+- If the user attaches a photo (e.g. a receipt), read the total amount and merchant/category off it directly and call log_expense (or add_contribution if it's clearly a savings deposit slip) — don't ask them to retype what's already visible in the image.`;
+
+  const userContent: Anthropic.MessageParam["content"] = image
+    ? [
+        { type: "image", source: { type: "base64", media_type: image.mediaType, data: image.data } },
+        { type: "text", text: message || "Here's a photo — please log it." },
+      ]
+    : message;
 
   const response = await anthropic.messages.create({
     model: "claude-sonnet-4-6",
@@ -58,7 +73,7 @@ Rules:
     system: systemPrompt,
     messages: [
       ...history.map((h) => ({ role: h.role, content: h.content })),
-      { role: "user" as const, content: message },
+      { role: "user" as const, content: userContent },
     ],
     tools: AI_TOOLS as any,
     tool_choice: { type: "auto" },
