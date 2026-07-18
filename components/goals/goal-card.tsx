@@ -38,6 +38,43 @@ const STATUS_COLOR: Record<GoalDetail["status"], string> = {
   ABANDONED: "text-muted-dim",
 };
 
+type PaceStatus = "on-track" | "behind";
+
+const PACE_LABEL: Record<PaceStatus, string> = {
+  "on-track": "On track",
+  behind: "Behind",
+};
+
+const PACE_COLOR: Record<PaceStatus, string> = {
+  "on-track": "#4ade80",
+  behind: "#f87171",
+};
+
+/**
+ * Compares progress-so-far against time-elapsed-so-far (both as fractions
+ * of the goal's total window) rather than just checking whether the
+ * deadline has passed — a goal can be past-due-feeling but still ahead of
+ * pace, or nowhere near due yet but already falling behind. Only makes
+ * sense for active goals with both a deadline and unmet progress.
+ */
+function getPaceStatus(goal: GoalDetail, now: Date = new Date()): PaceStatus | null {
+  if (goal.status !== "ACTIVE" || !goal.deadline || goal.targetAmount <= 0) return null;
+  const actualFraction = goal.currentAmount / goal.targetAmount;
+  if (actualFraction >= 1) return null;
+
+  const deadline = new Date(goal.deadline).getTime();
+  // Deadline already passed and still not complete — behind no matter what
+  // createdAt says (handles goals whose deadline predates their createdAt).
+  if (deadline <= now.getTime()) return "behind";
+
+  const created = new Date(goal.createdAt).getTime();
+  if (deadline <= created) return "behind";
+
+  const expectedFraction = Math.min(1, Math.max(0, (now.getTime() - created) / (deadline - created)));
+  // Small tolerance so a goal right on pace doesn't flicker to "Behind".
+  return actualFraction + 0.05 >= expectedFraction ? "on-track" : "behind";
+}
+
 export interface GoalCardProps {
   goal: GoalDetail;
   currency: string;
@@ -57,6 +94,7 @@ export function GoalCard({ goal, currency, index, onAddMoney, onEdit, onSetStatu
   const isActive = goal.status === "ACTIVE";
   const isCompleted = goal.status === "COMPLETED";
   const color = CATEGORY_COLOR[meta.category];
+  const paceStatus = getPaceStatus(goal);
 
   const recommendation = goal.recommendedContribution
     ? `Save ${formatCurrency(goal.recommendedContribution, currency)}/month${
@@ -97,7 +135,17 @@ export function GoalCard({ goal, currency, index, onAddMoney, onEdit, onSetStatu
               </span>
             )}
           </p>
-          <p className="truncate text-[15px] font-medium text-foreground">{goal.name}</p>
+          <p className="flex items-center gap-2 text-[15px] font-medium text-foreground">
+            <span className="truncate">{goal.name}</span>
+            {paceStatus && (
+              <span
+                className="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium"
+                style={{ backgroundColor: `${PACE_COLOR[paceStatus]}22`, color: PACE_COLOR[paceStatus] }}
+              >
+                {PACE_LABEL[paceStatus]}
+              </span>
+            )}
+          </p>
         </div>
         <div className="ml-auto shrink-0 text-right">
           <p className="text-[13px] text-muted">{isCompleted ? "Complete" : "Target"}</p>
